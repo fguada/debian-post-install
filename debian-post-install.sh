@@ -4,15 +4,15 @@
 set -o errexit
 # set -o nounset
 # set -o noglob # "Disable pathname expansion"
-# exec 2>|"$HOME/log.txt" # pour envoyer la sortie de xtrace dans un fichier
-# set -o xtrace
+exec 2>|"$HOME/log.txt" # pour envoyer la sortie de xtrace dans un fichier
+set -o xtrace
 # IFS="
 # "
 # IFS="$(printf '\n\t')" # par défaut: ' \n\t'
 
 # À faire AVANT l'exécution de ce script:
 # sudo apt install localepurge
-# sudo apt install git curl
+# sudo apt install git
 # git clone https://github.com/fguada/debian-post-install
 # cd ./debian-post-install
 # chmod +x ./debian-post-install.sh
@@ -28,41 +28,39 @@ echo
 echo "Pressez « ${bold}entrée${reset} » pour confirmer chaque étape, ou « ${bold}ctrl-c${reset} » pour quitter."
 echo
 echo "${bold}Configuration interactive de la console.${reset}"
-read -r toto
+read -r toto # Variable nécessaire à la commande, mais que je n'utilise pas.
 
 sudo dpkg-reconfigure console-setup
 
-echo
-echo "${bold}Création d’une copie de sauvegarde du fichier « /etc/apt/sources.list ».${reset}"
-read -r toto
+# Si la copie existe déjà, on ne l'écrase pas.
+if ! [ -e /etc/apt/sources.list.bak ]; then
+  echo
+  echo "${bold}Création d’une copie de sauvegarde du fichier « /etc/apt/sources.list ».${reset}"
+  read -r toto
 
-sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+  sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+fi
 
 echo
-echo "${bold}Ajout des composants « contrib » et « non-free » au même fichier.${reset}"
+echo "${bold}Ajout des composants « contrib » et « non-free » au fichier « /etc/apt/sources.list ».${reset}"
 read -r toto
 
 sudo sed --in-place 's/main non-free-firmware$/main non-free-firmware contrib non-free/g' /etc/apt/sources.list
 
 echo
-echo "${bold}Configuration des couleurs d’apt.${reset}"
+echo "${bold}Mise à jour de la liste des paquets.${reset}"
 read -r toto
 
-apt_conf_dir='/etc/apt/apt.conf.d'
-apt_color_conf='21-colors.conf'
-test ! -d "$apt_conf_dir" && sudo mkdir --parents "$apt_conf_dir"
-sudo touch "$apt_conf_dir/$apt_color_conf"
-sudo echo 'APT::Color::Action::Upgrade "blue";' >|"$apt_conf_dir/$apt_color_conf"
+sudo apt update
 
 echo
-echo "${bold}Mise à jour de la liste des paquets, et installation d’éventuelles mises à jour de ceux-ci.${reset}"
+echo "${bold}Installation d’éventuelles mises à jour des paquets.${reset}"
 read -r toto
 
-sudo apt-get update -y
-sudo apt-get upgrade -y
+sudo apt upgrade
 
 echo
-echo "${bold}Installation des paquets.${reset}"
+echo "${bold}Installation d’un choix personnel de paquets.${reset}"
 read -r toto
 
 alias install='sudo apt install'
@@ -120,7 +118,6 @@ fzf \
 galternatives \
 gcal \
 gh \
-git \
 gnome-characters \
 gnome-epub-thumbnailer \
 golang \
@@ -162,7 +159,6 @@ libreoffice-l10n-fr \
 libreoffice-qt6 \
 libreoffice-writer \
 libxml-dumper-perl \
-localepurge \
 lxpolkit \
 lzip \
 lzop \
@@ -233,10 +229,10 @@ wl-clipboard \
 wlopm \
 wlr-randr \
 wlrctl \
-wmctrl \
 xz-utils \
 yt-dlp \
 zathura"
+# wmctrl \
 # abcde \
 # archivemount \
 # atril \
@@ -336,8 +332,8 @@ chmod +x ./dra
 sudo mv --force ./dra /usr/local/bin/
 
 if [ "$SHELL" = 'bash' ]; then
-  dra completion bash >|./dra
-  sudo mv --force ./dra /usr/local/share/bash-completion/completions
+  dra completion bash >./dra
+  sudo mv --force ./dra /usr/local/share/bash-completion/completions/
 fi
 
 echo
@@ -440,20 +436,19 @@ if ! command -v go >/dev/null; then
 fi
 
 go install github.com/laurent22/massren@latest
-sudo cp --force "$GOPATH/bin/massren" /usr/local/bin/massren
+sudo cp --force "$GOPATH/bin/massren" /usr/local/bin/
 
 echo
 echo "${bold}Installation de wl-gammarelay-rs.${reset}"
 read -r toto
 
 if ! command -v cargo >/dev/null; then
-  echo "Installation de cargo"
   install cargo
 fi
 
-echo "Installation de wl-gammarelay-rs"
 cargo install wl-gammarelay-rs --locked
-sudo cp --force "$CARGO_HOME/bin/wl-gammarelay-rs" /usr/local/bin
+sudo cp --force "$CARGO_HOME/bin/wl-gammarelay-rs" /usr/local/bin/
+sudo chmod +x /usr/local/bin/wl-gammarelay-rs
 
 echo
 echo "${bold}Installation de wlinhibit.${reset}"
@@ -543,35 +538,104 @@ read -r toto
 
 sudo passwd root
 
+echo
+echo "${bold}Configuration des couleurs d’apt.${reset}"
+read -r toto
+
+apt_conf_dir='/etc/apt/apt.conf.d'
+apt_color_conf='21-colors.conf'
+test ! -d "$apt_conf_dir" && sudo mkdir --parents "$apt_conf_dir"
+sudo echo 'APT::Color::Action::Upgrade "blue";' | sudo tee "$apt_conf_dir/$apt_color_conf"
+
+echo
+echo "${bold}Ajout d’un utilisateur de secours: toto.${reset}"
+read -r toto
+
+sudo useradd toto
+
 echo '######################################'
 echo "${bold}# CONFIGURATION DES DONNÉES PRIVÉES. #${reset}"
 echo '######################################'
 
-sudo ln -s "/home/franck/.config/xkb/symbols/custom" "/usr/share/X11/xkb/rules/"
+disque=MINI
+montage="$(findmnt --real --noheadings --output=TARGET LABEL=${disque})"
 
-ln -s "/home/franck/.config/lf/marks" "/home/franck/.local/share/lf/"
+# MAINTENANT, il faut insérer un périphérique de stockage externe sur lequel se trouve mes données à copier, le monter, procéder à la copie.
+echo
+echo "${bold}Insérez maintenant la clé usb « $disque », contenant les données personnelles à copier sur cet ordinateur, puis pressez « entrée ».${reset}"
+echo 'bashmount sera exécutée, vous permettant de monter la clé insérée.'
+read -r toto
 
-# Rendre exécutable le script de nettoyage des images affichées par lf dans kitty.
-chmod +x "/home/franck/.config/lf/lf_kitty_clean"
+bashmount
 
-# Correction des permissions de mes clés ssh
-chmod 600 ~/.ssh/*
+if [ ! -d "${montage}" ]; then
+  echo
+  echo "La clé usb « $disque » n’est pas montée. Abandon."
 
-## Configurer le clavier (y compris celui de la console?).
-sudo dpkg-reconfigure keyboard-configuration
+  exit 1
+fi
 
-# Ou ceci?
-sudo echo -e '# KEYBOARD CONFIGURATION FILE
+echo
+echo "${bold}Saisissez maintenant le nom exact — sans chemin — du répertoire de $disque où se trouve le dossier HOME à copier sur cet ordinateur.${reset}"
+read -r rep
+
+cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --progress-bar --recursive --force -- "$montage/Sauvegarde/$rep/home/$USER/"* "$HOME"/
+
+if [ -e "$XDG_CONFIG_HOME/xkb/symbols/custom" ]; then
+  echo
+  echo "${bold}Établissement d’un lien symbolique entre mon clavier personnalisé et le clavier « custom » du système.${reset}"
+  read -r toto
+
+  sudo ln -s "$XDG_CONFIG_HOME/xkb/symbols/custom" "/usr/share/X11/xkb/rules/"
+
+  echo
+  echo "${bold}Configuration du clavier: choisir le clavier « custom ».${reset}"
+  read -r toto
+
+  # D'abord ceci, parce que la clavier de la console est configuré aussi?
+  sudo dpkg-reconfigure keyboard-configuration
+
+  echo
+  echo "${bold}Ajout d’options à la configuration du clavier.${reset}"
+  read -r toto
+
+  # sudo sed --in-place 's///' /etc/default/keyboard
+  # sudo sed --in-place 's///' /etc/default/keyboard
+
+  sudo echo '# KEYBOARD CONFIGURATION FILE
 # Consult the keyboard(5) manual page.
 
 XKBMODEL="pc105"
 XKBLAYOUT="custom"
 XKBOPTIONS="compose:ins,nbsp:level3n,kpdl:comma"
 BACKSPACE="guess"
-XKBVARIANT="fg_invert_home_end_with_pageup_pagedown,"' >|/etc/default/keyboard
+XKBVARIANT="fg_invert_home_end_with_pageup_pagedown,"' \
+    | sudo tee /etc/default/keyboard
+fi
 
-update-alternatives --config editor
+echo
+echo "${bold}Configuration de lf.${reset}"
+read -r toto
+
+ln -s "$XDG_CONFIG_HOME/lf/marks" "$XDG_DATA_HOME/lf/"
+
+# Rendre exécutable le script de nettoyage des images affichées par lf dans kitty.
+chmod +x "$XDG_CONFIG_HOME/lf/lf_kitty_clean"
+
+if [ -d "$HOME/.ssh/" ]; then
+  echo
+  echo "${bold}Correction des permissions de mes clés ssh.${reset}"
+  read -r toto
+
+  chmod 600 ~/.ssh/*
+fi
+
+echo
+echo "${bold}Configuration de l’éditeur de texte par défaut.${reset}"
+read -r toto
+
 sudo update-alternatives --config editor
+update-alternatives --config editor
 
 # À COMPILER
 # hyprpicker

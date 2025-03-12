@@ -1,6 +1,7 @@
 #!/bin/sh
+# shellcheck disable=SC2034
 
-# set -o errexit
+set -o errexit
 # set -o nounset
 # set -o noglob # "Disable pathname expansion"
 # exec 2>|"$HOME/log.txt" # pour envoyer la sortie de xtrace dans un fichier
@@ -23,28 +24,29 @@ reset=$(tput sgr0)
 echo '##########################################'
 echo "${bold}# SCRIPT DE POST-INSTALLATION DE DEBIAN. #${reset}"
 echo '##########################################'
-
+echo
+echo "Pressez « ${bold}entrée${reset} » pour confirmer chaque étape, ou « ${bold}ctrl-c${reset} » pour quitter."
 echo
 echo "${bold}Configuration interactive de la console.${reset}"
-echo
+read -r toto
 
 sudo dpkg-reconfigure console-setup
 
 echo
 echo "${bold}Création d’une copie de sauvegarde du fichier « /etc/apt/sources.list ».${reset}"
-echo
+read -r toto
 
 sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
 
 echo
 echo "${bold}Ajout des composants « contrib » et « non-free » au même fichier.${reset}"
-echo
+read -r toto
 
-sudo sed --in-place 's/main non-free-firmware/main non-free-firmware contrib non-free/g' /etc/apt/sources.list
+sudo sed --in-place 's/main non-free-firmware$/main non-free-firmware contrib non-free/g' /etc/apt/sources.list
 
 echo
 echo "${bold}Configuration des couleurs d’apt.${reset}"
-echo
+read -r toto
 
 apt_conf_dir='/etc/apt/apt.conf.d'
 apt_color_conf='21-colors.conf'
@@ -54,16 +56,16 @@ sudo echo 'APT::Color::Action::Upgrade "blue";' >|"$apt_conf_dir/$apt_color_conf
 
 echo
 echo "${bold}Mise à jour de la liste des paquets, et installation d’éventuelles mises à jour de ceux-ci.${reset}"
-echo
+read -r toto
 
 sudo apt-get update -y
 sudo apt-get upgrade -y
 
-alias install='sudo apt install -y'
-
 echo
 echo "${bold}Installation des paquets.${reset}"
-echo
+read -r toto
+
+alias install='sudo apt install'
 
 pkgs="\
 alacritty \
@@ -98,10 +100,8 @@ dconf-editor \
 dex \
 dictionaries-common \
 diffutils \
-diskus \
 dmidecode \
 docx2txt \
-dra \
 du-dust \
 duf \
 eject \
@@ -120,6 +120,7 @@ fzf \
 galternatives \
 gcal \
 gh \
+git \
 gnome-characters \
 gnome-epub-thumbnailer \
 golang \
@@ -277,18 +278,22 @@ install $pkgs
 
 echo
 echo "${bold}Configuration de libdvd.${reset}"
-echo
+read -r toto
 
 sudo dpkg-reconfigure libdvd-pkg
 
 echo
 echo "${bold}Création de répertoires nécessaires.${reset}"
-echo
+read -r toto
 
 userdirs="\
 $HOME/Projets
 $HOME/bin
-$HOME/.local/bin"
+$HOME/.local/bin
+$HOME/.local/share
+$HOME/.local/state
+$HOME/.config
+$HOME/.cache"
 
 for dir in $userdirs; do
   mkdir --parents "$dir"
@@ -304,12 +309,27 @@ for dir in $systemdirs; do
 done
 
 echo
-echo "${bold}INSTALLATION DE LOGICIELS HORS APT.${reset}"
+echo "${bold}Ajouts de variables d’environnement utiles.${reset}"
+read -r toto
+
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_STATE_HOME="$HOME/.local/state"
+export CARGO_HOME="$XDG_DATA_HOME"/cargo
+export GOPATH="$XDG_DATA_HOME"/go
+export GOMODCACHE="$XDG_CACHE_HOME"/go/mod
+PATH="$HOME/.local/bin:$PATH"
+PATH="$HOME/bin:$PATH"
+export PATH
+
 echo
+echo "${bold}INSTALLATION DE LOGICIELS HORS APT.${reset}"
+read -r toto
 
 echo
 echo "${bold}Installation de dra.${reset}"
-echo
+read -r toto
 
 curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/devmatteini/dra/refs/heads/main/install.sh | bash -s
 chmod +x ./dra
@@ -322,7 +342,7 @@ fi
 
 echo
 echo "${bold}Installation de bashmount.${reset}"
-echo
+read -r toto
 
 curl --remote-name https://raw.githubusercontent.com/jamielinux/bashmount/master/bashmount
 chmod +x ./bashmount
@@ -333,7 +353,7 @@ sudo mv --force ./bashmount.1 /usr/local/share/man/man1/
 
 echo
 echo "${bold}Installation de pastel.${reset}"
-echo
+read -r toto
 
 dra download --select "pastel_{tag}_amd64.deb" sharkdp/pastel
 install ./pastel*.deb
@@ -341,7 +361,7 @@ rm ./pastel*.deb
 
 echo
 echo "${bold}Installation de uni.${reset}"
-echo
+read -r toto
 
 dra download --select "uni-v{tag}-linux-amd64.gz" arp242/uni
 atool --extract uni*.gz
@@ -351,7 +371,7 @@ sudo chmod +x /usr/local/bin/uni
 
 echo
 echo "${bold}Installation de ouch.${reset}"
-echo
+read -r toto
 
 dra download --select "ouch-x86_64-unknown-linux-gnu.tar.gz" ouch-org/ouch
 atool --extract ouch-x86_64-unknown-linux-gnu.tar.gz
@@ -362,7 +382,7 @@ sudo mv --force ./ouch-x86_64-unknown-linux-gnu/man/* /usr/local/share/man/man1/
 
 echo
 echo "${bold}Installation de moar.${reset}"
-echo
+read -r toto
 
 dra download --select "moar-v{tag}-linux-amd64" walles/moar
 sudo mv --force moar-*-*-* /usr/local/bin/moar
@@ -372,7 +392,7 @@ sudo mv --force ./moar.1 /usr/local/share/man/man1/
 
 echo
 echo "${bold}Installation de fend.${reset}"
-echo
+read -r toto
 
 dra download --select "fend-{tag}-linux-x86_64-gnu.zip" printfn/fend
 atool --extract fend-*-linux-x86_64-gnu.zip
@@ -383,7 +403,7 @@ sudo mv --force ./fend.1 /usr/local/share/man/man1/
 
 echo
 echo "${bold}Installation de diskus.${reset}"
-echo
+read -r toto
 
 dra download --select "diskus_{tag}_amd64.deb" sharkdp/diskus
 install ./diskus*.deb
@@ -396,7 +416,7 @@ sudo rm ./diskus*.deb
 
 echo
 echo "${bold}Installation de advcpmv.${reset}"
-echo
+read -r toto
 
 cd "$HOME/Projets" || exit 1
 
@@ -413,7 +433,7 @@ sudo chmod +x /usr/local/bin/cpg /usr/local/bin/mvg
 
 echo
 echo "${bold}Installation de massren.${reset}"
-echo
+read -r toto
 
 if ! command -v go >/dev/null; then
   install golang
@@ -424,7 +444,7 @@ sudo cp --force "$GOPATH/bin/massren" /usr/local/bin/massren
 
 echo
 echo "${bold}Installation de wl-gammarelay-rs.${reset}"
-echo
+read -r toto
 
 if ! command -v cargo >/dev/null; then
   echo "Installation de cargo"
@@ -437,7 +457,7 @@ sudo cp --force "$CARGO_HOME/bin/wl-gammarelay-rs" /usr/local/bin
 
 echo
 echo "${bold}Installation de wlinhibit.${reset}"
-echo
+read -r toto
 
 dra download --select "x86_64-unknown-linux-gnu" 0x5a4/wlinhibit
 sudo mv --force ./"x86_64-unknown-linux-gnu" /usr/local/bin/wlinhibit
@@ -445,7 +465,7 @@ sudo chmod +x /usr/local/bin/wlinhibit
 
 echo
 echo "${bold}Installation de VSCodium.${reset}"
-echo
+read -r toto
 
 wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
   | gpg --dearmor \
@@ -458,7 +478,7 @@ sudo apt update && sudo apt install codium
 
 echo
 echo "${bold}Installation de batsignal.${reset}"
-echo
+read -r toto
 
 cd "$HOME/Projets" || exit 1
 
@@ -474,7 +494,7 @@ make && sudo make install
 
 echo
 echo "${bold}Installation de timemachine.${reset}"
-echo
+read -r toto
 
 curl --remote-name https://raw.githubusercontent.com/cytopia/linux-timemachine/refs/heads/master/timemachine
 chmod +x ./timemachine
@@ -482,7 +502,7 @@ sudo mv --force ./timemachine /usr/local/bin/
 
 echo
 echo "${bold}Installation de datedirclean.sh.${reset}"
-echo
+read -r toto
 
 curl --remote-name https://raw.githubusercontent.com/meersjo/toolkit/refs/heads/master/various/datedirclean.sh
 chmod +x ./datedirclean.sh
@@ -490,14 +510,14 @@ sudo mv --force ./datedirclean.sh /usr/local/bin/
 
 echo
 echo "${bold}Correction des permissions des répertoires du système.${reset}"
-echo
+read -r toto
 
 sudo chmod 755 /usr/local/bin/*
 sudo chown root:root /usr/local/bin/*
 
 echo
 echo "${bold}Configuration de « /etc/systemd/logind.conf ».${reset}"
-echo
+read -r toto
 
 sudo sed --in-place 's/^#HandlePowerKey=.*/HandlePowerKey=ignore/' /etc/systemd/logind.conf
 sudo sed --in-place 's/^#IdleAction=.*/IdleAction=suspend/' /etc/systemd/logind.conf
@@ -505,21 +525,21 @@ sudo sed --in-place 's/^#IdleActionSec=.*/IdleActionSec=4min/' /etc/systemd/logi
 
 echo
 echo "${bold}Configuration de grub.${reset}"
-echo
+read -r toto
 
 sudo sed --in-place 's/GRUB_TIMEOUT=./GRUB_TIMEOUT=2/' "/etc/default/grub"
 sudo update-grub
 
 echo
 echo "${bold}Établissement de liens symboliques de batcat et fdfind vers bat et fd.${reset}"
-echo
+read -r toto
 
 sudo ln -s /usr/bin/batcat /usr/local/bin/bat
 sudo ln -s /usr/bin/fdfind /usr/local/bin/fd
 
 echo
 echo "${bold}Création du mot de passe du compte root.${reset}"
-echo
+read -r toto
 
 sudo passwd root
 
@@ -533,6 +553,9 @@ ln -s "/home/franck/.config/lf/marks" "/home/franck/.local/share/lf/"
 
 # Rendre exécutable le script de nettoyage des images affichées par lf dans kitty.
 chmod +x "/home/franck/.config/lf/lf_kitty_clean"
+
+# Correction des permissions de mes clés ssh
+chmod 600 ~/.ssh/*
 
 ## Configurer le clavier (y compris celui de la console?).
 sudo dpkg-reconfigure keyboard-configuration

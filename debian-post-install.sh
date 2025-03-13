@@ -21,46 +21,61 @@ set -o xtrace
 bold=$(tput bold)
 reset=$(tput sgr0)
 
+check() {
+  last_command_exit_code="$1"
+
+  if [ "$last_command_exit_code" -eq 0 ]; then
+    printf '%sOK%s' "${bold}" "${reset}"
+  else
+    printf '%sERREUR. Code: %s%s.' "${bold}" "${last_command_exit_code}" "${reset}"
+  fi
+}
+
 echo '##########################################'
 echo "${bold}# SCRIPT DE POST-INSTALLATION DE DEBIAN. #${reset}"
 echo '##########################################'
 echo
 echo "Pressez « ${bold}entrée${reset} » pour confirmer chaque étape, ou « ${bold}ctrl-c${reset} » pour quitter."
 echo
-echo "${bold}Configuration interactive de la console.${reset}"
+printf '%sConfiguration interactive de la console.%s' "${bold}" "${reset}"
 read -r toto # Variable nécessaire à la commande, mais que je n'utilise pas.
 
 sudo dpkg-reconfigure console-setup
+check $?
 
 # Si la copie existe déjà, on ne l'écrase pas.
 if ! [ -e /etc/apt/sources.list.bak ]; then
   echo
-  echo "${bold}Création d’une copie de sauvegarde du fichier « /etc/apt/sources.list ».${reset}"
+  printf '%sCréation d’une copie de sauvegarde du fichier « /etc/apt/sources.list ».%s' "${bold}" "${reset}"
   read -r toto
 
   sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+  check $?
 fi
 
 echo
-echo "${bold}Ajout des composants « contrib » et « non-free » au fichier « /etc/apt/sources.list ».${reset}"
+printf '%sAjout des composants « contrib » et « non-free » au fichier « /etc/apt/sources.list ».%s' "${bold}" "${reset}"
 read -r toto
 
 sudo sed --in-place 's/main non-free-firmware$/main non-free-firmware contrib non-free/g' /etc/apt/sources.list
+check $?
 
 echo
-echo "${bold}Mise à jour de la liste des paquets.${reset}"
+printf '%sMise à jour de la liste des paquets.%s' "${bold}" "${reset}"
 read -r toto
 
 sudo apt update
+check $?
 
 echo
-echo "${bold}Installation d’éventuelles mises à jour des paquets.${reset}"
+printf '%sInstallation d’éventuelles mises à jour des paquets.%s' "${bold}" "${reset}"
 read -r toto
 
 sudo apt upgrade
+check $?
 
 echo
-echo "${bold}Installation d’un choix personnel de paquets.${reset}"
+printf '%sInstallation d’un choix personnel de paquets.%s' "${bold}" "${reset}"
 read -r toto
 
 alias install='sudo apt install'
@@ -271,15 +286,17 @@ zathura"
 
 # shellcheck disable=SC2086 # On veut séparer les paquets.
 install $pkgs
+check $?
 
 echo
-echo "${bold}Configuration de libdvd.${reset}"
+printf '%sConfiguration de libdvd.%s' "${bold}" "${reset}"
 read -r toto
 
 sudo dpkg-reconfigure libdvd-pkg
+check $?
 
 echo
-echo "${bold}Création de répertoires nécessaires.${reset}"
+printf '%sCréation de répertoires nécessaires.%s' "${bold}" "${reset}"
 read -r toto
 
 userdirs="\
@@ -304,8 +321,10 @@ for dir in $systemdirs; do
   sudo mkdir --parents "$dir"
 done
 
+check $?
+
 echo
-echo "${bold}Ajouts de variables d’environnement utiles.${reset}"
+printf '%sAjouts de variables d’environnement utiles.%s' "${bold}" "${reset}"
 read -r toto
 
 export XDG_CONFIG_HOME="$HOME/.config"
@@ -319,12 +338,14 @@ PATH="$HOME/.local/bin:$PATH"
 PATH="$HOME/bin:$PATH"
 export PATH
 
+check $?
+
 echo
-echo "${bold}INSTALLATION DE LOGICIELS HORS APT.${reset}"
+printf '%sINSTALLATION DE LOGICIELS HORS APT.%s' "${bold}" "${reset}"
 read -r toto
 
 echo
-echo "${bold}Installation de dra.${reset}"
+printf '%sInstallation de dra.%s' "${bold}" "${reset}"
 read -r toto
 
 curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/devmatteini/dra/refs/heads/main/install.sh | bash -s
@@ -336,8 +357,10 @@ if [ "$SHELL" = 'bash' ]; then
   sudo mv --force ./dra /usr/local/share/bash-completion/completions/
 fi
 
+check $?
+
 echo
-echo "${bold}Installation de bashmount.${reset}"
+printf '%sInstallation de bashmount.%s' "${bold}" "${reset}"
 read -r toto
 
 curl --remote-name https://raw.githubusercontent.com/jamielinux/bashmount/master/bashmount
@@ -347,16 +370,19 @@ sudo mv --force ./bashmount /usr/local/bin/
 curl --remote-name https://raw.githubusercontent.com/jamielinux/bashmount/refs/heads/master/bashmount.1
 sudo mv --force ./bashmount.1 /usr/local/share/man/man1/
 
+check $?
+
 echo
-echo "${bold}Installation de pastel.${reset}"
+printf '%sInstallation de pastel.%s' "${bold}" "${reset}"
 read -r toto
 
 dra download --select "pastel_{tag}_amd64.deb" sharkdp/pastel
 install ./pastel*.deb
 rm ./pastel*.deb
+check $?
 
 echo
-echo "${bold}Installation de uni.${reset}"
+printf '%sInstallation de uni.%s' "${bold}" "${reset}"
 read -r toto
 
 dra download --select "uni-v{tag}-linux-amd64.gz" arp242/uni
@@ -364,9 +390,10 @@ atool --extract uni*.gz
 rm --force uni*.gz
 sudo mv --force uni-v*-linux-amd64 /usr/local/bin/uni
 sudo chmod +x /usr/local/bin/uni
+check $?
 
 echo
-echo "${bold}Installation de ouch.${reset}"
+printf '%sInstallation de ouch.%s' "${bold}" "${reset}"
 read -r toto
 
 dra download --select "ouch-x86_64-unknown-linux-gnu.tar.gz" ouch-org/ouch
@@ -375,9 +402,10 @@ sudo mv --force ./ouch-x86_64-unknown-linux-gnu/ouch /usr/local/bin/
 sudo chmod +x /usr/local/bin/ouch
 sudo mv --force ./ouch-x86_64-unknown-linux-gnu/completions/ouch.bash /usr/local/share/bash-completion/completions/
 sudo mv --force ./ouch-x86_64-unknown-linux-gnu/man/* /usr/local/share/man/man1/
+check $?
 
 echo
-echo "${bold}Installation de moar.${reset}"
+printf '%sInstallation de moar.%s' "${bold}" "${reset}"
 read -r toto
 
 dra download --select "moar-v{tag}-linux-amd64" walles/moar
@@ -385,9 +413,10 @@ sudo mv --force moar-*-*-* /usr/local/bin/moar
 sudo chmod +x /usr/local/bin/moar
 curl --remote-name https://raw.githubusercontent.com/walles/moar/refs/heads/master/moar.1
 sudo mv --force ./moar.1 /usr/local/share/man/man1/
+check $?
 
 echo
-echo "${bold}Installation de fend.${reset}"
+printf '%sInstallation de fend.%s' "${bold}" "${reset}"
 read -r toto
 
 dra download --select "fend-{tag}-linux-x86_64-gnu.zip" printfn/fend
@@ -396,14 +425,16 @@ sudo mv --force fend /usr/local/bin/
 sudo chmod +x /usr/local/bin/fend
 dra download --select "fend.1" printfn/fend
 sudo mv --force ./fend.1 /usr/local/share/man/man1/
+check $?
 
 echo
-echo "${bold}Installation de diskus.${reset}"
+printf '%sInstallation de diskus.%s' "${bold}" "${reset}"
 read -r toto
 
 dra download --select "diskus_{tag}_amd64.deb" sharkdp/diskus
 install ./diskus*.deb
 sudo rm ./diskus*.deb
+check $?
 
 # Installation de flacon… Mais les AppImages semblent mal fonctionner sous wayland.
 # dra download --select "flacon-{tag}-x86_64.AppImage" flacon/flacon
@@ -411,7 +442,7 @@ sudo rm ./diskus*.deb
 # sudo chmod +x /usr/local/bin/flacon-*-*.AppImage
 
 echo
-echo "${bold}Installation de advcpmv.${reset}"
+printf '%sInstallation de advcpmv.%s' "${bold}" "${reset}"
 read -r toto
 
 cd "$HOME/Projets" || exit 1
@@ -426,9 +457,10 @@ fi
 sudo mv --force "$HOME"/Projets/advcpmv/advcp /usr/local/bin/cpg
 sudo mv --force "$HOME"/Projets/advcpmv/advmv /usr/local/bin/mvg
 sudo chmod +x /usr/local/bin/cpg /usr/local/bin/mvg
+check $?
 
 echo
-echo "${bold}Installation de massren.${reset}"
+printf '%sInstallation de massren.%s' "${bold}" "${reset}"
 read -r toto
 
 if ! command -v go >/dev/null; then
@@ -437,9 +469,10 @@ fi
 
 go install github.com/laurent22/massren@latest
 sudo cp --force "$GOPATH/bin/massren" /usr/local/bin/
+check $?
 
 echo
-echo "${bold}Installation de wl-gammarelay-rs.${reset}"
+printf '%sInstallation de wl-gammarelay-rs.%s' "${bold}" "${reset}"
 read -r toto
 
 if ! command -v cargo >/dev/null; then
@@ -449,17 +482,19 @@ fi
 cargo install wl-gammarelay-rs --locked
 sudo cp --force "$CARGO_HOME/bin/wl-gammarelay-rs" /usr/local/bin/
 sudo chmod +x /usr/local/bin/wl-gammarelay-rs
+check $?
 
 echo
-echo "${bold}Installation de wlinhibit.${reset}"
+printf '%sInstallation de wlinhibit.%s' "${bold}" "${reset}"
 read -r toto
 
 dra download --select "x86_64-unknown-linux-gnu" 0x5a4/wlinhibit
 sudo mv --force ./"x86_64-unknown-linux-gnu" /usr/local/bin/wlinhibit
 sudo chmod +x /usr/local/bin/wlinhibit
+check $?
 
 echo
-echo "${bold}Installation de VSCodium.${reset}"
+printf '%sInstallation de VSCodium.%s' "${bold}" "${reset}"
 read -r toto
 
 wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
@@ -470,9 +505,10 @@ echo 'deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/vscodium-archive-keyri
   | sudo tee /etc/apt/sources.list.d/vscodium.list
 
 sudo apt update && sudo apt install codium
+check $?
 
 echo
-echo "${bold}Installation de batsignal.${reset}"
+printf '%sInstallation de batsignal.%s' "${bold}" "${reset}"
 read -r toto
 
 cd "$HOME/Projets" || exit 1
@@ -486,72 +522,82 @@ else
 fi
 
 make && sudo make install
+check $?
 
 echo
-echo "${bold}Installation de timemachine.${reset}"
+printf '%sInstallation de timemachine.%s' "${bold}" "${reset}"
 read -r toto
 
 curl --remote-name https://raw.githubusercontent.com/cytopia/linux-timemachine/refs/heads/master/timemachine
 chmod +x ./timemachine
 sudo mv --force ./timemachine /usr/local/bin/
+check $?
 
 echo
-echo "${bold}Installation de datedirclean.sh.${reset}"
+printf '%sInstallation de datedirclean.sh.%s' "${bold}" "${reset}"
 read -r toto
 
 curl --remote-name https://raw.githubusercontent.com/meersjo/toolkit/refs/heads/master/various/datedirclean.sh
 chmod +x ./datedirclean.sh
 sudo mv --force ./datedirclean.sh /usr/local/bin/
+check $?
 
 echo
-echo "${bold}Correction des permissions des répertoires du système.${reset}"
+printf '%sCorrection des permissions des répertoires du système.%s' "${bold}" "${reset}"
 read -r toto
 
 sudo chmod 755 /usr/local/bin/*
 sudo chown root:root /usr/local/bin/*
+check $?
 
 echo
-echo "${bold}Configuration de « /etc/systemd/logind.conf ».${reset}"
+printf '%sConfiguration de « /etc/systemd/logind.conf ».%s' "${bold}" "${reset}"
 read -r toto
 
 sudo sed --in-place 's/^#HandlePowerKey=.*/HandlePowerKey=ignore/' /etc/systemd/logind.conf
 sudo sed --in-place 's/^#IdleAction=.*/IdleAction=suspend/' /etc/systemd/logind.conf
 sudo sed --in-place 's/^#IdleActionSec=.*/IdleActionSec=4min/' /etc/systemd/logind.conf
+check $?
 
 echo
-echo "${bold}Configuration de grub.${reset}"
+printf '%sConfiguration de grub.%s' "${bold}" "${reset}"
 read -r toto
 
 sudo sed --in-place 's/GRUB_TIMEOUT=./GRUB_TIMEOUT=2/' "/etc/default/grub"
 sudo update-grub
+check $?
 
 echo
-echo "${bold}Établissement de liens symboliques de batcat et fdfind vers bat et fd.${reset}"
+printf '%sÉtablissement de liens symboliques de batcat et fdfind vers bat et fd.%s' "${bold}" "${reset}"
 read -r toto
 
 sudo ln -s /usr/bin/batcat /usr/local/bin/bat
 sudo ln -s /usr/bin/fdfind /usr/local/bin/fd
+check $?
 
 echo
-echo "${bold}Création du mot de passe du compte root.${reset}"
+printf '%sCréation du mot de passe du compte root.%s' "${bold}" "${reset}"
 read -r toto
 
 sudo passwd root
+check $?
 
 echo
-echo "${bold}Configuration des couleurs d’apt.${reset}"
+printf '%sConfiguration des couleurs d’apt.%s' "${bold}" "${reset}"
 read -r toto
 
 apt_conf_dir='/etc/apt/apt.conf.d'
 apt_color_conf='21-colors.conf'
 test ! -d "$apt_conf_dir" && sudo mkdir --parents "$apt_conf_dir"
 sudo echo 'APT::Color::Action::Upgrade "blue";' | sudo tee "$apt_conf_dir/$apt_color_conf"
+check $?
 
 echo
-echo "${bold}Ajout d’un utilisateur de secours: toto.${reset}"
+printf '%sAjout d’un utilisateur de secours: toto.%s' "${bold}" "${reset}"
 read -r toto
 
 sudo useradd toto
+check $?
 
 echo '######################################'
 echo "${bold}# CONFIGURATION DES DONNÉES PRIVÉES. #${reset}"
@@ -562,8 +608,7 @@ montage="$(findmnt --real --noheadings --output=TARGET LABEL=${disque})"
 
 # MAINTENANT, il faut insérer un périphérique de stockage externe sur lequel se trouve mes données à copier, le monter, procéder à la copie.
 echo
-echo "${bold}Insérez maintenant la clé usb « $disque », contenant les données personnelles à copier sur cet ordinateur, puis pressez « entrée ».${reset}"
-echo 'bashmount sera exécutée, vous permettant de monter la clé insérée.'
+printf '%sInsérez maintenant la clé usb « %s », contenant les données personnelles à copier sur cet ordinateur, puis pressez « entrée ».%s bashmount sera exécuté, vous permettant de monter la clé insérée.' "${bold}" "$disque" "${reset}"
 read -r toto
 
 bashmount
@@ -576,27 +621,30 @@ if [ ! -d "${montage}" ]; then
 fi
 
 echo
-echo "${bold}Saisissez maintenant le nom exact — sans chemin — du répertoire de $disque où se trouve le dossier HOME à copier sur cet ordinateur.${reset}"
+printf '%sSaisissez maintenant le nom exact — sans chemin — du répertoire de %s où se trouve le dossier HOME à copier sur cet ordinateur.%s' "${bold}" "$disque" "${reset}"
 read -r rep
 
 cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --progress-bar --recursive --force -- "$montage/Sauvegarde/$rep/home/$USER/"* "$HOME"/
+check $?
 
 if [ -e "$XDG_CONFIG_HOME/xkb/symbols/custom" ]; then
   echo
-  echo "${bold}Établissement d’un lien symbolique entre mon clavier personnalisé et le clavier « custom » du système.${reset}"
+  printf '%sÉtablissement d’un lien symbolique entre mon clavier personnalisé et le clavier « custom » du système.%s' "${bold}" "${reset}"
   read -r toto
 
   sudo ln -s "$XDG_CONFIG_HOME/xkb/symbols/custom" "/usr/share/X11/xkb/rules/"
+  check $?
 
   echo
-  echo "${bold}Configuration du clavier: choisir le clavier « custom ».${reset}"
+  printf '%sConfiguration du clavier: choisir le clavier « custom ».%s' "${bold}" "${reset}"
   read -r toto
 
   # D'abord ceci, parce que la clavier de la console est configuré aussi?
   sudo dpkg-reconfigure keyboard-configuration
+  check $?
 
   echo
-  echo "${bold}Ajout d’options à la configuration du clavier.${reset}"
+  printf '%sAjout d’options à la configuration du clavier.%s' "${bold}" "${reset}"
   read -r toto
 
   # sudo sed --in-place 's///' /etc/default/keyboard
@@ -611,31 +659,36 @@ XKBOPTIONS="compose:ins,nbsp:level3n,kpdl:comma"
 BACKSPACE="guess"
 XKBVARIANT="fg_invert_home_end_with_pageup_pagedown,"' \
     | sudo tee /etc/default/keyboard
+
+  check $?
 fi
 
 echo
-echo "${bold}Configuration de lf.${reset}"
+printf '%sConfiguration de lf.%s' "${bold}" "${reset}"
 read -r toto
 
 ln -s "$XDG_CONFIG_HOME/lf/marks" "$XDG_DATA_HOME/lf/"
 
 # Rendre exécutable le script de nettoyage des images affichées par lf dans kitty.
 chmod +x "$XDG_CONFIG_HOME/lf/lf_kitty_clean"
+check $?
 
 if [ -d "$HOME/.ssh/" ]; then
   echo
-  echo "${bold}Correction des permissions de mes clés ssh.${reset}"
+  printf '%sCorrection des permissions de mes clés ssh.%s' "${bold}" "${reset}"
   read -r toto
 
   chmod 600 ~/.ssh/*
+  check $?
 fi
 
 echo
-echo "${bold}Configuration de l’éditeur de texte par défaut.${reset}"
+printf '%sConfiguration de l’éditeur de texte par défaut.%s' "${bold}" "${reset}"
 read -r toto
 
 sudo update-alternatives --config editor
 update-alternatives --config editor
+check $?
 
 # À COMPILER
 # hyprpicker

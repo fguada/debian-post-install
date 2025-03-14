@@ -15,7 +15,6 @@
 # sudo apt install git
 # git clone https://github.com/fguada/debian-post-install
 # cd ./debian-post-install
-# chmod +x ./debian-post-install.sh
 # sh ./debian-post-install.sh
 
 bold=$(tput bold)
@@ -32,12 +31,12 @@ check() {
 }
 
 install() {
-  sudo apt install
+  sudo apt install "$@"
 }
 
 install_name() {
   echo
-  printf '%sInstallation de %s.%s' "${bold}" "$1" "${reset}"
+  printf '%sInstallation de %s.%s ' "${bold}" "$1" "${reset}"
 }
 
 echo '##########################################'
@@ -48,7 +47,7 @@ echo "Pressez « ${bold}entrée${reset} » pour confirmer chaque étape, « $
 
 config_console() {
   echo
-  printf '%sConfiguration interactive de la console.%s' "${bold}" "${reset}"
+  printf '%sConfiguration interactive de la console.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -60,7 +59,7 @@ backup_apt_sourceslist() {
   # Si la copie existe déjà, on ne l'écrase pas.
   if ! [ -e /etc/apt/sources.list.bak ]; then
     echo
-    printf '%sCréation d’une copie de sauvegarde du fichier « /etc/apt/sources.list ».%s' "${bold}" "${reset}"
+    printf '%sCréation d’une copie de sauvegarde du fichier « /etc/apt/sources.list ».%s ' "${bold}" "${reset}"
     read -r answer
     [ "$answer" = 'n' ] && return
 
@@ -71,7 +70,7 @@ backup_apt_sourceslist() {
 
 config_apt_sourceslist() {
   echo
-  printf '%sAjout des composants « contrib » et « non-free » au fichier « /etc/apt/sources.list ».%s' "${bold}" "${reset}"
+  printf '%sAjout des composants « contrib » et « non-free » au fichier « /etc/apt/sources.list ».%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -81,7 +80,7 @@ config_apt_sourceslist() {
 
 update_apt() {
   echo
-  printf '%sMise à jour de la liste des paquets.%s' "${bold}" "${reset}"
+  printf '%sMise à jour de la liste des paquets.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -91,7 +90,7 @@ update_apt() {
 
 upgrade_apt() {
   echo
-  printf '%sInstallation d’éventuelles mises à jour des paquets.%s' "${bold}" "${reset}"
+  printf '%sInstallation d’éventuelles mises à jour des paquets.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -101,7 +100,7 @@ upgrade_apt() {
 
 install_cutom_pkgs() {
   echo
-  printf '%sInstallation d’un choix personnel de paquets.%s' "${bold}" "${reset}"
+  printf '%sInstallation d’un choix personnel de paquets.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -260,6 +259,7 @@ unalz \
 unrar \
 upower \
 vainfo \
+virt-manager \
 vlc \
 vlc-plugin-pipewire \
 vulkan-tools \
@@ -326,7 +326,7 @@ libwayland-dev"
 
 config_libdvd() {
   echo
-  printf '%sConfiguration de libdvd.%s' "${bold}" "${reset}"
+  printf '%sConfiguration de libdvd.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -336,7 +336,7 @@ config_libdvd() {
 
 create_dirs() {
   echo
-  printf '%sCréation de répertoires nécessaires.%s' "${bold}" "${reset}"
+  printf '%sCréation de répertoires nécessaires.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -367,7 +367,7 @@ $HOME/.cache"
 
 export_env_vars() {
   echo
-  printf '%sAjouts de variables d’environnement utiles.%s' "${bold}" "${reset}"
+  printf '%sAjouts de variables d’environnement utiles.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -384,10 +384,6 @@ export_env_vars() {
 
   check $?
 }
-
-echo '#######################################'
-printf '%s# INSTALLATION DE LOGICIELS HORS APT. #%s' "${bold}" "${reset}"
-echo '#######################################'
 
 install_dra() {
   install_name dra
@@ -511,7 +507,7 @@ install_flacon() {
 
 install_advcpmv() {
   echo
-  printf '%sInstallation de advcpmv%s (peut prendre quelques minutes).' "${bold}" "${reset}"
+  printf '%sInstallation de advcpmv%s (peut prendre quelques minutes). ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -546,7 +542,7 @@ install_massren() {
 
 install_wl_gammarelay_rs() {
   echo
-  printf '%sInstallation de wl-gammarelay-rs%s (peut prendre quelques minutes).' "${bold}" "${reset}"
+  printf '%sInstallation de wl-gammarelay-rs%s (peut prendre quelques minutes). ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -708,7 +704,7 @@ install_labwc_gtktheme() {
 
 correct_perms() {
   echo
-  printf '%sCorrection des permissions des répertoires du système.%s' "${bold}" "${reset}"
+  printf '%sCorrection des permissions des répertoires du système.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -719,7 +715,7 @@ correct_perms() {
 
 config_logind() {
   echo
-  printf '%sConfiguration de « /etc/systemd/logind.conf ».%s' "${bold}" "${reset}"
+  printf '%sConfiguration de « /etc/systemd/logind.conf ».%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -731,7 +727,7 @@ config_logind() {
 
 config_grub() {
   echo
-  printf '%sConfiguration de grub.%s' "${bold}" "${reset}"
+  printf '%sConfiguration de grub.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -742,7 +738,7 @@ config_grub() {
 
 make_symlinks() {
   echo
-  printf '%sÉtablissement de liens symboliques de batcat et fdfind vers bat et fd.%s' "${bold}" "${reset}"
+  printf '%sÉtablissement de liens symboliques de batcat et fdfind vers bat et fd.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -753,7 +749,7 @@ make_symlinks() {
 
 create_root_passwd() {
   echo
-  printf '%sCréation du mot de passe du compte root.%s' "${bold}" "${reset}"
+  printf '%sCréation du mot de passe du compte root.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -763,7 +759,7 @@ create_root_passwd() {
 
 config_apt_colors() {
   echo
-  printf '%sConfiguration des couleurs d’apt.%s' "${bold}" "${reset}"
+  printf '%sConfiguration des couleurs d’apt.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -776,7 +772,7 @@ config_apt_colors() {
 
 add_rescue_user() {
   echo
-  printf '%sAjout d’un utilisateur de secours: toto.%s' "${bold}" "${reset}"
+  printf '%sAjout d’un utilisateur de secours: toto.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -784,16 +780,12 @@ add_rescue_user() {
   check $?
 }
 
-echo '######################################'
-echo "${bold}# CONFIGURATION DES DONNÉES PRIVÉES. #${reset}"
-echo '######################################'
-
 copy_data() {
   disque=MINI
 
   # MAINTENANT, il faut insérer un périphérique de stockage externe sur lequel se trouve mes données à copier, le monter, procéder à la copie.
   echo
-  printf '%sInsérez maintenant la clé usb « %s », contenant les données personnelles à copier sur cet ordinateur, puis pressez « entrée ».%s bashmount sera exécuté, vous permettant de monter la clé insérée.' "${bold}" "$disque" "${reset}"
+  printf '%sInsérez maintenant la clé usb « %s », contenant les données personnelles à copier sur cet ordinateur, puis pressez « entrée ».%s bashmount sera exécuté, vous permettant de monter la clé insérée. ' "${bold}" "$disque" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -818,7 +810,7 @@ copy_data() {
 config_keyboard() {
   if [ -e "$XDG_CONFIG_HOME/xkb/symbols/custom" ]; then
     echo
-    printf '%sÉtablissement d’un lien symbolique entre mon clavier personnalisé et le clavier « custom » du système.%s' "${bold}" "${reset}"
+    printf '%sÉtablissement d’un lien symbolique entre mon clavier personnalisé et le clavier « custom » du système.%s ' "${bold}" "${reset}"
     read -r answer
     [ "$answer" = 'n' ] && return
 
@@ -826,7 +818,7 @@ config_keyboard() {
     check $?
 
     echo
-    printf '%sConfiguration du clavier: choisir le clavier « custom ».%s' "${bold}" "${reset}"
+    printf '%sConfiguration du clavier: choisir le clavier « custom ».%s ' "${bold}" "${reset}"
     read -r answer
     [ "$answer" = 'n' ] && return
 
@@ -835,7 +827,7 @@ config_keyboard() {
     check $?
 
     echo
-    printf '%sAjout d’options à la configuration du clavier.%s' "${bold}" "${reset}"
+    printf '%sAjout d’options à la configuration du clavier.%s ' "${bold}" "${reset}"
     read -r answer
     [ "$answer" = 'n' ] && return
 
@@ -858,7 +850,7 @@ XKBVARIANT="fg_invert_home_end_with_pageup_pagedown,"' \
 
 config_lf() {
   echo
-  printf '%sConfiguration de lf.%s' "${bold}" "${reset}"
+  printf '%sConfiguration de lf.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -873,7 +865,7 @@ config_lf() {
 correct_ssh_perms() {
   if [ -d "$HOME/.ssh/" ]; then
     echo
-    printf '%sCorrection des permissions de mes clés ssh.%s' "${bold}" "${reset}"
+    printf '%sCorrection des permissions de mes clés ssh.%s ' "${bold}" "${reset}"
     read -r answer
     [ "$answer" = 'n' ] && return
 
@@ -884,7 +876,7 @@ correct_ssh_perms() {
 
 config_default_editor() {
   echo
-  printf '%sConfiguration de l’éditeur de texte par défaut.%s' "${bold}" "${reset}"
+  printf '%sConfiguration de l’éditeur de texte par défaut.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -895,7 +887,7 @@ config_default_editor() {
 ## Désactiver certains services inutiles (il peut aussi être nécessaires de les masquer, pour empêcher que d'autres processus ne les lancent).
 config_systemd_services() {
   echo
-  printf '%sConfiguration de services de systemd.%s' "${bold}" "${reset}"
+  printf '%sConfiguration de services de systemd.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
@@ -918,6 +910,11 @@ install_cutom_pkgs
 config_libdvd
 create_dirs
 export_env_vars
+
+echo '#######################################'
+echo "${bold}# INSTALLATION DE LOGICIELS HORS APT. #${reset}"
+echo '#######################################'
+
 install_dra
 install_bashmount
 install_pastel
@@ -944,6 +941,11 @@ make_symlinks
 create_root_passwd
 config_apt_colors
 add_rescue_user
+
+echo '######################################'
+echo "${bold}# CONFIGURATION DES DONNÉES PERSONNELLES. #${reset}"
+echo '######################################'
+
 copy_data
 config_keyboard
 config_lf

@@ -39,11 +39,12 @@ install_name() {
   printf '%sInstallation de %s.%s ' "${bold}" "$1" "${reset}"
 }
 
+echo
 echo '##########################################'
-echo "${bold}# SCRIPT DE POST-INSTALLATION DE DEBIAN. #${reset}"
+echo "# ${bold}SCRIPT DE POST-INSTALLATION DE DEBIAN.${reset} #"
 echo '##########################################'
 echo
-echo "Pressez « ${bold}entrée${reset} » pour confirmer chaque étape, « ${bold}n puis entrée${reset} » pour la passer, ou « ${bold}ctrl-c${reset} » pour quitter."
+echo "Pressez « ${bold}entrée${reset} » pour confirmer chaque étape, « ${bold}n${reset} » puis « ${bold}entrée${reset} » pour la passer, ou « ${bold}ctrl-c${reset} » pour quitter."
 
 config_console() {
   echo
@@ -106,6 +107,7 @@ install_cutom_pkgs() {
 
   pkgs="\
 alacritty \
+anacron \
 arc \
 arj \
 atool \
@@ -228,7 +230,7 @@ rar \
 rclone \
 regionset \
 rfkill \
-ripgrep \
+ripgmy_path \
 rpm \
 rsync \
 ruby-jekyll-paginate \
@@ -282,6 +284,8 @@ libpango1.0-dev \
 libpugixml-dev \
 libwayland-client-extra++1 \
 libwayland-dev"
+  # fontforge \
+  # python3-fontforge"
   # wmctrl \
   # abcde \
   # archivemount \
@@ -347,7 +351,7 @@ $HOME/.local/bin
 $HOME/.local/share
 $HOME/.local/state
 $HOME/.config
-$HOME/.cache"
+$HOME/.cache/fg"
 
   for dir in $userdirs; do
     mkdir --parents "$dir"
@@ -361,6 +365,9 @@ $HOME/.cache"
   for dir in $systemdirs; do
     sudo mkdir --parents "$dir"
   done
+
+  # Au cas où ce ne serait pas le cas… Nécessaire pour utiliser brightnessctl sans sudo.
+  sudo usermod -a -G video "$USER"
 
   check $?
 }
@@ -381,7 +388,6 @@ export_env_vars() {
   PATH="$HOME/.local/bin:$PATH"
   PATH="$HOME/bin:$PATH"
   export PATH
-
   check $?
 }
 
@@ -410,10 +416,8 @@ install_bashmount() {
   curl --remote-name https://raw.githubusercontent.com/jamielinux/bashmount/master/bashmount
   chmod +x ./bashmount
   sudo mv --force ./bashmount /usr/local/bin/
-
   curl --remote-name https://raw.githubusercontent.com/jamielinux/bashmount/refs/heads/master/bashmount.1
   sudo mv --force ./bashmount.1 /usr/local/share/man/man1/
-
   check $?
 }
 
@@ -540,6 +544,22 @@ install_massren() {
   check $?
 }
 
+# J'ai besoin d'une version >= 0.6, or au 14/03/2025, debian testing n'a encore que 0.5.
+# Pas de bogue si j'utilise une version < 0.6, l'option de contrôle de la longueur des lignes de prévisualisation est simplement ignorée.
+install_cliphist() {
+  install_name cliphist
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  if ! command -v go >/dev/null; then
+    install golang
+  fi
+
+  go install go.senan.xyz/cliphist@latest
+  sudo cp --force "$GOPATH/bin/cliphist" /usr/local/bin/
+  check $?
+}
+
 install_wl_gammarelay_rs() {
   echo
   printf '%sInstallation de wl-gammarelay-rs%s (peut prendre quelques minutes). ' "${bold}" "${reset}"
@@ -572,7 +592,7 @@ install_vscodium() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
+  wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-my_patho/raw/master/pub.gpg \
     | gpg --dearmor \
     | sudo dd of=/usr/share/keyrings/vscodium-archive-keyring.gpg
 
@@ -602,6 +622,7 @@ install_batsignal() {
   check $?
 }
 
+# Ces logiciels s'installent dans /usr et non dans /usr/local. Malheureusement leurs makefiles ne respectent pas l'argument `--prefix /usr/local` qui pourrait être passé à `cmake`.
 install_hyprpicker() {
   install_name hyprpicker
   read -r answer
@@ -698,7 +719,45 @@ install_labwc_gtktheme() {
 
   chmod +x ./labwc-gtktheme.py
   sudo cp ./labwc-gtktheme.py /usr/local/bin
-  labwc-gtktheme.py
+
+  # La session graphique doit avoir été lancée au moins une fois avant que ce script python puisse fonctionner.
+  # labwc-gtktheme.py
+
+  check $?
+}
+
+install_homebrew() {
+  install_name homebrew
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  check $?
+}
+
+install_eid_belgium() {
+  install_name 'eID Belgium'
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  curl --remote-name https://eid.belgium.be/sites/default/files/software/eid-archive_latest.deb
+  install ./eid-archive_latest.deb
+  sudo apt update && install eid-viewer eid-mw
+  rm ./eid-archive_latest.deb
+  check $?
+}
+
+install_signal() {
+  install_name 'Signal Desktop'
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  wget -O- https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor >signal-desktop-keyring.gpg
+  # shellcheck disable=SC2002 # Je prends cette ligne du site web: https://signal.org/fr/download/linux/.
+  cat signal-desktop-keyring.gpg | sudo tee /usr/share/keyrings/signal-desktop-keyring.gpg >/dev/null
+  echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.gpg] https://updates.signal.org/desktop/apt xenial main' \
+    | sudo tee /etc/apt/sources.list.d/signal-xenial.list
+  sudo apt update && sudo apt install signal-desktop
   check $?
 }
 
@@ -766,7 +825,7 @@ config_apt_colors() {
   apt_conf_dir='/etc/apt/apt.conf.d'
   apt_color_conf='21-colors.conf'
   test ! -d "$apt_conf_dir" && sudo mkdir --parents "$apt_conf_dir"
-  sudo echo 'APT::Color::Action::Upgrade "blue";' | sudo tee "$apt_conf_dir/$apt_color_conf"
+  echo 'APT::Color::Action::Upgrade "blue";' | sudo tee "$apt_conf_dir/$apt_color_conf"
   check $?
 }
 
@@ -781,29 +840,58 @@ add_rescue_user() {
 }
 
 copy_data() {
-  disque=MINI
-
-  # MAINTENANT, il faut insérer un périphérique de stockage externe sur lequel se trouve mes données à copier, le monter, procéder à la copie.
   echo
-  printf '%sInsérez maintenant la clé usb « %s », contenant les données personnelles à copier sur cet ordinateur, puis pressez « entrée ».%s bashmount sera exécuté, vous permettant de monter la clé insérée. ' "${bold}" "$disque" "${reset}"
+  printf '%sCopie de données personnelles d’un périphérique de stockage externe.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  bashmount
-  montage="$(findmnt --real --noheadings --output=TARGET LABEL=${disque})"
-
-  if [ ! -d "${montage}" ]; then
-    echo
-    echo "La clé usb « $disque » n’est pas montée. Abandon."
-
-    exit 1
+  if ! command -v bashmount >/dev/null; then
+    printf '%sbashmount n’est pas installé. Ce logiciel est nécessaire à cette étape. Abandon.%s ' "${bold}" "${reset}"
+    return
   fi
 
   echo
-  printf '%sSaisissez maintenant le nom exact — sans chemin — du répertoire de %s où se trouve le dossier HOME à copier sur cet ordinateur:%s ' "${bold}" "$disque" "${reset}"
-  read -r rep
+  printf '%sInsérez maintenant le périphérique de stockage externe contenant les données à copier, puis pressez « entrée ».%s\nLe logiciel bashmount sera exécuté, vous permettant de monter le périphérique inséré. ' "${bold}" "${reset}"
+  read -r answer
+  [ "$answer" = 'n' ] && return
 
-  cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --progress-bar --recursive --force -- "$montage/Sauvegarde/$rep/home/$USER/." "$HOME"/
+  # Nécessaire pour que polkit soit actif, lequel est nécessaire à bashmount pour monter un volume en tant qu'utilisateur standard.
+  echo
+  echo 'Préalable indispensable: redémarrage de dbus.'
+  sudo systemctl restart dbus
+
+  bashmount
+
+  echo
+  printf '%sSaisissez maintenant le chemin complet du dossier dont le contenu sera copié dans « %s ».%s\nCe chemin est habituellement de la forme « /home/media/%s/<volume>/<mon_chemin>/ ».\nChemin: ' "${bold}" "$HOME" "${reset}" "$USER"
+  read -r my_path
+
+  if ! [ -d "$my_path" ]; then
+    echo
+    echo "${bold}ERREUR: « $my_path » n’est pas un dossier! Abandon.${reset}"
+    return
+  fi
+
+  echo
+  echo "Copie du contenu de « $my_path » dans « $HOME »."
+  echo
+
+  if ! command -v cpg >/dev/null; then
+    cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$my_path/." "$HOME/"
+  else
+    cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$my_path/." "$HOME/"
+  fi
+
+  check $?
+}
+
+make_exec() {
+  echo
+  printf '%sCorrection des permissions des répertoires « bin ».%s ' "${bold}" "${reset}"
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  chmod +x ~/bin/* ~/.local/bin/*
   check $?
 }
 
@@ -818,7 +906,7 @@ config_keyboard() {
     check $?
 
     echo
-    printf '%sConfiguration du clavier: choisir le clavier « custom ».%s ' "${bold}" "${reset}"
+    printf '%sConfiguration du clavier (choisir « une disposition définie par l’utilisateur » pour utiliser le clavier « custom »).%s ' "${bold}" "${reset}"
     read -r answer
     [ "$answer" = 'n' ] && return
 
@@ -834,7 +922,7 @@ config_keyboard() {
     # sudo sed --in-place 's///' /etc/default/keyboard
     # sudo sed --in-place 's///' /etc/default/keyboard
 
-    sudo echo '# KEYBOARD CONFIGURATION FILE
+    echo '# KEYBOARD CONFIGURATION FILE
 # Consult the keyboard(5) manual page.
 
 XKBMODEL="pc105"
@@ -849,17 +937,19 @@ XKBVARIANT="fg_invert_home_end_with_pageup_pagedown,"' \
 }
 
 config_lf() {
-  echo
-  printf '%sConfiguration de lf.%s ' "${bold}" "${reset}"
-  read -r answer
-  [ "$answer" = 'n' ] && return
+  if command -v lf >/dev/null; then
+    echo
+    printf '%sConfiguration de lf.%s ' "${bold}" "${reset}"
+    read -r answer
+    [ "$answer" = 'n' ] && return
 
-  mkdir --parents "$XDG_DATA_HOME/lf"
-  ln -s "$XDG_CONFIG_HOME/lf/marks" "$XDG_DATA_HOME/lf/"
+    mkdir --parents "$XDG_DATA_HOME/lf"
+    ln -s "$XDG_CONFIG_HOME/lf/marks" "$XDG_DATA_HOME/lf/"
 
-  # Rendre exécutable le script de nettoyage des images affichées par lf dans kitty.
-  chmod +x "$XDG_CONFIG_HOME/lf/lf_kitty_clean"
-  check $?
+    # Rendre exécutable le script de nettoyage des images affichées par lf dans kitty.
+    chmod +x "$XDG_CONFIG_HOME/lf/lf_kitty_clean"
+    check $?
+  fi
 }
 
 correct_ssh_perms() {
@@ -898,6 +988,82 @@ config_systemd_services() {
   sudo systemctl disable cups-browsed.service
   sudo systemctl disable accounts-daemon
   sudo systemctl mask accounts-daemon
+  check $?
+}
+
+config_thunar() {
+  if command -v thunar >/dev/null; then
+    echo
+    printf '%sConfiguration de Thunar.%s ' "${bold}" "${reset}"
+    read -r answer
+    [ "$answer" = 'n' ] && return
+
+    thunar -q
+    # toujours afficher le chemin complet dans la barre de titre de Thunar
+    # pour Thunar 4.18 (mais mieux vaut peut-être l'option qui affiche le chemin complet dans le titre de l'onglet; ce qui me permet d'activer l'option de cacher la barre de titre des fenêtres maximisées)
+    xfconf-query --channel thunar --property /misc-full-path-in-window-title --create --type bool --set true
+    # afficher les onglets même quand un seul est ouvert; utile si j'active l'option qui masque le titre des fenêtres maximisées
+    xfconf-query --channel thunar --property /misc-always-show-tabs --create --type bool --set true
+    check $?
+  fi
+}
+
+config_xfce_panel() {
+  if command -v xfce4-panel >/dev/null; then
+    echo
+    printf '%sConfiguration de xfce4-panel.%s ' "${bold}" "${reset}"
+    read -r answer
+    [ "$answer" = 'n' ] && return
+
+    # Désactiver l'animation de masquage automatique du tableau de bord d'Xfce.
+    xfconf-query -n -c xfce4-panel -p /panels/panel-1/popdown-speed -t int -s 0
+    # Les délais de masquage et la hauteur résiduelle du tableau de bord peuvent être configurés avec du css.
+    # Voir https://docs.xfce.org/xfce/xfce4-panel/preferences.
+    check $?
+  fi
+}
+
+config_xfce_session() {
+  if command -v xfce4-session >/dev/null; then
+    echo
+    printf '%sConfiguration de xfce4-session.%s ' "${bold}" "${reset}"
+    read -r answer
+    [ "$answer" = 'n' ] && return
+
+    # Désactiver le lancement automatique de gpg et ssh.
+    xfconf-query -c xfce4-session -p /startup/ssh-agent/enabled -n -t bool -s false
+    xfconf-query -c xfce4-session -p /startup/gpg-agent/enabled -n -t bool -s false
+    check $?
+  fi
+}
+
+config_documents_hourly_backup() {
+  if command -v timemachine >/dev/null \
+    && command -v datedirclean.sh >/dev/null \
+    && command -v sauvegarde_locale_timemachine_Documents.sh >/dev/null; then
+    echo
+    printf '%sConfiguration de la sauvegarde horaire des documents cruciaux.%s ' "${bold}" "${reset}"
+    read -r answer
+    [ "$answer" = 'n' ] && return
+
+    # Création du répertoire de sauvegardes locales.
+    sudo mkdir --parents "/home/sauvegardes/$USER/Documents"
+
+    # Ajustement du propriétaire dudit répertoire.
+    sudo chown --changes --recursive "$USER":"$USER" "/home/sauvegardes/$USER"
+
+    # Paramétrage de la chronicité de la sauvegarde.
+    echo "@hourly $(which sauvegarde_locale_timemachine_Documents.sh)" | crontab -
+
+    # Paramétrage de la suppression automatique des sauvegardes les plus anciennes.
+    echo "
+# FG
+# tous les 7 jours, suppression des anciennes sauvegardes locales effectuées chaque heure avec linux-timemachine via cron
+7 15 fg-suppression-des-anciennes-sauvegardes-locales	$(which datedirclean.sh) /home/sauvegardes/$USER/Documents" \
+      | sudo tee --append /etc/anacrontab
+
+    check $?
+  fi
 }
 
 # Exécution des fonctions.
@@ -911,8 +1077,9 @@ config_libdvd
 create_dirs
 export_env_vars
 
+echo
 echo '#######################################'
-echo "${bold}# INSTALLATION DE LOGICIELS HORS APT. #${reset}"
+echo "# ${bold}INSTALLATION DE LOGICIELS HORS APT.${reset} #"
 echo '#######################################'
 
 install_dra
@@ -926,6 +1093,7 @@ install_diskus
 # install_flacon
 install_advcpmv
 install_massren
+install_cliphist
 install_wl_gammarelay_rs
 install_wlinhibit
 install_vscodium
@@ -934,6 +1102,9 @@ install_hyprpicker
 install_timemachine
 install_datedirclean
 install_labwc_gtktheme
+install_homebrew
+install_eid_belgium
+install_signal
 correct_perms
 config_logind
 config_grub
@@ -942,13 +1113,33 @@ create_root_passwd
 config_apt_colors
 add_rescue_user
 
-echo '######################################'
-echo "${bold}# CONFIGURATION DES DONNÉES PERSONNELLES. #${reset}"
-echo '######################################'
+echo
+echo '###########################################'
+echo "# ${bold}CONFIGURATION DES DONNÉES PERSONNELLES.${reset} #"
+echo '###########################################'
 
 copy_data
+make_exec
 config_keyboard
 config_lf
 correct_ssh_perms
 config_default_editor
 # config_systemd_services
+config_thunar
+config_xfce_panel
+config_xfce_session
+config_documents_hourly_backup
+
+echo
+echo '########'
+echo "# ${bold}FIN.${reset} #"
+echo '########'
+echo
+echo "${bold}Il est conseillé de redémarrer maintenant.${reset}"
+echo
+
+# À faire manuellement.
+
+# mint-x-icons_1.6.5_all.deb # http://packages.linuxmint.com/pool/main/m/mint-x-icons/
+# mint-y-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-y-icons/
+# mint-themes_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-themes/

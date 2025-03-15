@@ -803,6 +803,9 @@ make_symlinks() {
 
   sudo ln -s /usr/bin/batcat /usr/local/bin/bat
   sudo ln -s /usr/bin/fdfind /usr/local/bin/fd
+  
+  # Si on ne construit pas le cache de bat, notre thème personnalisé ne sera pas utilisé, générant une erreur.
+  bat cache --build
   check $?
 }
 

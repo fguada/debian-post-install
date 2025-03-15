@@ -230,7 +230,7 @@ rar \
 rclone \
 regionset \
 rfkill \
-ripgmy_path \
+ripgrep \
 rpm \
 rsync \
 ruby-jekyll-paginate \
@@ -592,7 +592,7 @@ install_vscodium() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-my_patho/raw/master/pub.gpg \
+  wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
     | gpg --dearmor \
     | sudo dd of=/usr/share/keyrings/vscodium-archive-keyring.gpg
 

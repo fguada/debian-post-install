@@ -863,7 +863,7 @@ copy_data() {
   bashmount
 
   echo
-  printf '%sSaisissez maintenant le chemin complet du dossier dont le contenu sera copié dans « %s ».%s\nCe chemin est habituellement de la forme « /home/media/%s/<volume>/<mon_chemin>/ ».\nChemin: ' "${bold}" "$HOME" "${reset}" "$USER"
+  printf '%sSaisissez maintenant le chemin complet du dossier dont le contenu sera copié dans « %s ».%s\nCe chemin est habituellement de la forme « /media/%s/<volume>/<mon_chemin>/ ».\nChemin: ' "${bold}" "$HOME" "${reset}" "$USER"
   read -r my_path
 
   if ! [ -d "$my_path" ]; then
@@ -873,7 +873,7 @@ copy_data() {
   fi
 
   echo
-  echo "Copie du contenu de « $my_path » dans « $HOME »."
+  echo "Copie du contenu de « $my_path » dans « ${HOME}/ »."
   echo
 
   if ! command -v cpg >/dev/null; then
@@ -891,7 +891,7 @@ make_exec() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  chmod +x ~/bin/* ~/.local/bin/*
+  chmod --quiet +x ~/bin/* ~/.local/bin/*
   check $?
 }
 
@@ -1138,8 +1138,9 @@ echo
 echo "${bold}Il est conseillé de redémarrer maintenant.${reset}"
 echo
 
-# À faire manuellement.
+# À FAIRE MANUELLEMENT.
 
-# mint-x-icons_1.6.5_all.deb # http://packages.linuxmint.com/pool/main/m/mint-x-icons/
+# Installer les dernières versions des paquets ci-dessous.
+# mint-x-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-x-icons/
 # mint-y-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-y-icons/
 # mint-themes_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-themes/

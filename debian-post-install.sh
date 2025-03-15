@@ -891,7 +891,7 @@ make_exec() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  chmod --quiet +x ~/bin/* ~/.local/bin/*
+  chmod +x ~/bin/* ~/.local/bin/*
   check $?
 }
 

@@ -902,7 +902,7 @@ config_keyboard() {
     read -r answer
     [ "$answer" = 'n' ] && return
 
-    sudo ln -s "$XDG_CONFIG_HOME/xkb/symbols/custom" "/usr/share/X11/xkb/rules/"
+    sudo ln -s "$XDG_CONFIG_HOME/xkb/symbols/custom" "/usr/share/X11/xkb/symbols/"
     check $?
 
     echo
@@ -932,6 +932,9 @@ BACKSPACE="guess"
 XKBVARIANT="fg_invert_home_end_with_pageup_pagedown,"' \
       | sudo tee /etc/default/keyboard
 
+    # Synchronisation des changements avec la console.
+    sudo setupcon
+    
     check $?
   fi
 }

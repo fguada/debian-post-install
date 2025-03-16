@@ -405,7 +405,7 @@ install_dra() {
   sudo mv --force ./dra /usr/local/bin/
 
   if [ "$SHELL" = 'bash' ]; then
-    dra completion bash >./dra
+    dra completion bash > ./dra
     sudo mv --force ./dra /usr/local/share/bash-completion/completions/
   fi
 
@@ -460,6 +460,7 @@ install_ouch() {
   sudo chmod +x /usr/local/bin/ouch
   sudo mv --force ./ouch-x86_64-unknown-linux-gnu/completions/ouch.bash /usr/local/share/bash-completion/completions/
   sudo mv --force ./ouch-x86_64-unknown-linux-gnu/man/* /usr/local/share/man/man1/
+  rm ./ouch-*
   check $?
 }
 
@@ -487,6 +488,7 @@ install_fend() {
   sudo chmod +x /usr/local/bin/fend
   dra download --select "fend.1" printfn/fend
   sudo mv --force ./fend.1 /usr/local/share/man/man1/
+  rm ./fend-*
   check $?
 }
 
@@ -539,7 +541,7 @@ install_massren() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  if ! command -v go >/dev/null; then
+  if ! command -v go > /dev/null; then
     install golang
   fi
 
@@ -555,7 +557,7 @@ install_cliphist() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  if ! command -v go >/dev/null; then
+  if ! command -v go > /dev/null; then
     install golang
   fi
 
@@ -570,7 +572,7 @@ install_wl_gammarelay_rs() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  if ! command -v cargo >/dev/null; then
+  if ! command -v cargo > /dev/null; then
     install cargo
   fi
 
@@ -645,7 +647,7 @@ install_hyprpicker() {
   fi
 
   cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
-  cmake --build ./build --config Release --target all -j"$(nproc 2>/dev/null || getconf NPROCESSORS_CONF)"
+  cmake --build ./build --config Release --target all -j"$(nproc 2> /dev/null || getconf NPROCESSORS_CONF)"
   sudo cmake --install build
   check $?
 
@@ -679,7 +681,7 @@ install_hyprpicker() {
   fi
 
   cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
-  cmake --build ./build --config Release --target hyprpicker -j"$(nproc 2>/dev/null || getconf _NPROCESSORS_CONF)"
+  cmake --build ./build --config Release --target hyprpicker -j"$(nproc 2> /dev/null || getconf _NPROCESSORS_CONF)"
   sudo cmake --install ./build
   check $?
 }
@@ -756,9 +758,9 @@ install_signal() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  wget -O- https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor >signal-desktop-keyring.gpg
+  wget -O- https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor > signal-desktop-keyring.gpg
   # shellcheck disable=SC2002 # Je prends cette ligne du site web: https://signal.org/fr/download/linux/.
-  cat signal-desktop-keyring.gpg | sudo tee /usr/share/keyrings/signal-desktop-keyring.gpg >/dev/null
+  cat signal-desktop-keyring.gpg | sudo tee /usr/share/keyrings/signal-desktop-keyring.gpg > /dev/null
   echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.gpg] https://updates.signal.org/desktop/apt xenial main' \
     | sudo tee /etc/apt/sources.list.d/signal-xenial.list
   sudo apt update && sudo apt install signal-desktop
@@ -766,7 +768,7 @@ install_signal() {
 }
 
 install_emailbook() {
-  if command -v aerc >/dev/null; then
+  if command -v aerc > /dev/null; then
     install_name 'emailbook (pour aerc)'
     read -r answer
     [ "$answer" = 'n' ] && return
@@ -865,7 +867,7 @@ copy_data() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  if ! command -v bashmount >/dev/null; then
+  if ! command -v bashmount > /dev/null; then
     printf '%sbashmount n’est pas installé. Ce logiciel est nécessaire à cette étape. Abandon.%s ' "${bold}" "${reset}"
     return
   fi
@@ -904,7 +906,7 @@ copy_data() {
   echo
 
   my_cp() {
-    if ! command -v cpg >/dev/null; then
+    if ! command -v cpg > /dev/null; then
       cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$1" "$2"
     else
       cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$1" "$2"
@@ -922,12 +924,22 @@ copy_data() {
   # Si le répertoire existe et n'est pas vide…
   if [ -d "$my_path/usr/local/share/pixmaps" ] && [ "$(ls -A "$my_path/usr/local/share/pixmaps")" ]; then
     sudo mkdir --parents /usr/local/share/pixmaps
-    my_cp "$my_path/usr/local/share/pixmaps/." /usr/local/share/pixmaps/
+
+    if ! command -v cpg > /dev/null; then
+      sudo cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$my_path/usr/local/share/pixmaps/." /usr/local/share/pixmaps/
+    else
+      sudo cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$my_path/usr/local/share/pixmaps/." /usr/local/share/pixmaps/
+    fi
   fi
 
   if [ -d "$my_path/usr/local/share/applications" ] && [ "$(ls -A "$my_path/usr/local/share/applications")" ]; then
     sudo mkdir --parents /usr/local/share/applications
-    my_cp "$my_path/usr/local/share/applications/*.desktop" /usr/local/share/applications/
+
+    if ! command -v cpg > /dev/null; then
+      sudo cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$my_path"/usr/local/share/applications/*.desktop /usr/local/share/applications/
+    else
+      sudo cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$my_path"/usr/local/share/applications/*.desktop /usr/local/share/applications/
+    fi
   fi
 
   check $?
@@ -937,7 +949,11 @@ copy_data() {
   echo
 
   if [ -e "$my_path/etc/issuefg" ]; then
-    my_cp "$my_path/etc/issuefg" /etc/
+    if ! command -v cpg > /dev/null; then
+      sudo cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$my_path/etc/issuefg" /etc/
+    else
+      sudo cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$my_path/etc/issuefg" /etc/
+    fi
   fi
 
   check $?
@@ -998,7 +1014,7 @@ XKBVARIANT="fg_invert_home_end_with_pageup_pagedown,"' \
 }
 
 config_lf() {
-  if command -v lf >/dev/null; then
+  if command -v lf > /dev/null; then
     echo
     printf '%sConfiguration de lf.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1053,7 +1069,7 @@ config_systemd_services() {
 }
 
 config_thunar() {
-  if command -v thunar >/dev/null; then
+  if command -v thunar > /dev/null; then
     echo
     printf '%sConfiguration de Thunar.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1070,7 +1086,7 @@ config_thunar() {
 }
 
 config_xfce_panel() {
-  if command -v xfce4-panel >/dev/null; then
+  if command -v xfce4-panel > /dev/null; then
     echo
     printf '%sConfiguration de xfce4-panel.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1085,7 +1101,7 @@ config_xfce_panel() {
 }
 
 config_xfce_session() {
-  if command -v xfce4-session >/dev/null; then
+  if command -v xfce4-session > /dev/null; then
     echo
     printf '%sConfiguration de xfce4-session.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1099,9 +1115,9 @@ config_xfce_session() {
 }
 
 config_documents_hourly_backup() {
-  if command -v timemachine >/dev/null \
-    && command -v datedirclean.sh >/dev/null \
-    && command -v sauvegarde_locale_timemachine_Documents.sh >/dev/null; then
+  if command -v timemachine > /dev/null \
+    && command -v datedirclean.sh > /dev/null \
+    && command -v sauvegarde_locale_timemachine_Documents.sh > /dev/null; then
     echo
     printf '%sConfiguration de la sauvegarde horaire des documents cruciaux.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1128,16 +1144,16 @@ config_documents_hourly_backup() {
 }
 
 config_mime() {
-  if command -v fset-default-app-for-mime-category.sh >/dev/null; then
+  if command -v fset-default-app-for-mime-category.sh > /dev/null; then
     echo
     printf '%sConfiguration de l’association d’une application à toute une catégorie de types mime.%s ' "${bold}" "${reset}"
     read -r answer
     [ "$answer" = 'n' ] && return
 
-    command -v codium >/dev/null && fset-default-app-for-mime-category.sh text codium
-    command -v qimgv >/dev/null && fset-default-app-for-mime-category.sh image qimgv
-    command -v vlc >/dev/null && fset-default-app-for-mime-category.sh audio vlc
-    command -v mpv >/dev/null && fset-default-app-for-mime-category.sh video mpv
+    command -v codium > /dev/null && fset-default-app-for-mime-category.sh text codium
+    command -v qimgv > /dev/null && fset-default-app-for-mime-category.sh image qimgv
+    command -v vlc > /dev/null && fset-default-app-for-mime-category.sh audio vlc
+    command -v mpv > /dev/null && fset-default-app-for-mime-category.sh video mpv
     check $?
   fi
 }

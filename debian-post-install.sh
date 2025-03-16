@@ -460,7 +460,7 @@ install_ouch() {
   sudo chmod +x /usr/local/bin/ouch
   sudo mv --force ./ouch-x86_64-unknown-linux-gnu/completions/ouch.bash /usr/local/share/bash-completion/completions/
   sudo mv --force ./ouch-x86_64-unknown-linux-gnu/man/* /usr/local/share/man/man1/
-  rm ./ouch-*
+  rm -rf ./ouch-*
   check $?
 }
 

@@ -1160,6 +1160,23 @@ config_mime() {
   fi
 }
 
+config_tty1_nameless_login() {
+  echo
+  printf '%sConfiguration de la connexion sans nom d’utilisateur sur la tty1.%s ' "${bold}" "${reset}"
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  sudo mkdir --parents "/etc/systemd/system/getty@tty1.service.d"
+
+  echo "[Service]
+ExecStartPre='/lib/console-setup/console-setup.sh'
+ExecStart=
+ExecStart=-/sbin/agetty --issue-file /etc/issuefg -o '-p -- $USER' --noclear --skip-login - \$TERM" \
+    | sudo tee "/etc/systemd/system/getty@tty1.service.d/override.conf"
+
+  check $?
+}
+
 # Exécution des fonctions.
 config_console
 backup_apt_sourceslist
@@ -1225,6 +1242,7 @@ config_xfce_panel
 config_xfce_session
 config_documents_hourly_backup
 config_mime
+config_tty1_nameless_login
 
 echo
 echo '########'

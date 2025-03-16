@@ -877,11 +877,13 @@ copy_data() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  # Nécessaire pour que polkit soit actif, lequel est nécessaire à bashmount pour monter un volume en tant qu'utilisateur standard.
-  echo
-  echo 'Préalable indispensable: redémarrage de dbus.'
-  sudo systemctl restart dbus
-  check $?
+  if test ! "$DISPLAY"; then
+    # Nécessaire pour que polkit soit actif, lequel est nécessaire à bashmount pour monter un volume en tant qu'utilisateur standard. Mais si la variable d'environnement DISPLAY existe, nous ne sommes plus en console et dbus a nécessairement redémarré depuis l'installation. Cette commande fait crasher la session graphique.
+    echo
+    echo 'Préalable indispensable: redémarrage de dbus.'
+    sudo systemctl restart dbus
+    check $?
+  fi
 
   bashmount
 
@@ -1238,5 +1240,6 @@ echo
 # mint-x-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-x-icons/
 # mint-y-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-y-icons/
 # mint-themes_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-themes/
+# puis exécuter une fois labwc-gtktheme.py.
 
 # Si nécecessaire, installer format_sd: https://www.sdcard.org/downloads/sd-memory-card-formatter-for-linux/

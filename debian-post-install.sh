@@ -276,6 +276,10 @@ wlrctl \
 xz-utils \
 yt-dlp \
 zathura \
+zathura-pdf-poppler \
+zathura-cb \
+zathura-djvu \
+zathura-ps \
 wayland-protocols \
 libwayland-client++1 \
 libxkbcommon-dev \
@@ -761,6 +765,19 @@ install_signal() {
   check $?
 }
 
+install_emailbook() {
+  if command -v aerc >/dev/null; then
+    install_name 'emailbook (pour aerc)'
+    read -r answer
+    [ "$answer" = 'n' ] && return
+
+    curl --remote-name https://git.sr.ht/~maxgyver83/emailbook/blob/main/emailbook
+    chmod +X ./emailbook
+    sudo mv ./emailbook /usr/local/bin/
+    check $?
+  fi
+}
+
 correct_perms() {
   echo
   printf '%sCorrection des permissions des répertoires du système.%s ' "${bold}" "${reset}"
@@ -803,8 +820,8 @@ make_symlinks() {
 
   sudo ln -s /usr/bin/batcat /usr/local/bin/bat
   sudo ln -s /usr/bin/fdfind /usr/local/bin/fd
-  
-  # Si on ne construit pas le cache de bat, notre thème personnalisé ne sera pas utilisé, générant une erreur.
+
+  # On veut clairement utiliser bat. La construction du cache est nécessaire pour utiliser un thème personnalisé.
   bat cache --build
   check $?
 }
@@ -862,11 +879,12 @@ copy_data() {
   echo
   echo 'Préalable indispensable: redémarrage de dbus.'
   sudo systemctl restart dbus
+  check $?
 
   bashmount
 
   echo
-  printf '%sSaisissez maintenant le chemin complet du dossier dont le contenu sera copié dans « %s ».%s\nCe chemin est habituellement de la forme « /media/%s/<volume>/<mon_chemin>/ ».\nChemin: ' "${bold}" "$HOME" "${reset}" "$USER"
+  printf '%sSaisissez maintenant le chemin complet du dossier « Sauvegarde » à copier.%s\nCe chemin est habituellement de la forme « /media/%s/<volume>/Sauvegarde/<machine>/ ».\n(Il peut être vérifié dans une autre tty.)\nChemin: ' "${bold}" "${reset}" "$USER"
   read -r my_path
 
   if ! [ -d "$my_path" ]; then
@@ -875,14 +893,51 @@ copy_data() {
     return
   fi
 
+  if ! [ -d "${my_path}/home/${USER}" ]; then
+    echo
+    echo "${bold}ERREUR: « ${my_path}/home/${USER} » n’existe pas! Abandon.${reset}"
+    return
+  fi
+
   echo
-  echo "Copie du contenu de « $my_path » dans « ${HOME}/ »."
+  echo "Copie du contenu de « ${my_path}/home/$USER/ » dans « ${HOME}/ »."
   echo
 
-  if ! command -v cpg >/dev/null; then
-    cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$my_path/." "$HOME/"
-  else
-    cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$my_path/." "$HOME/"
+  my_cp() {
+    if ! command -v cpg >/dev/null; then
+      cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$1" "$2"
+    else
+      cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$1" "$2"
+    fi
+  }
+
+  my_cp "${my_path}/home/${USER}/." "$HOME/"
+  check $?
+
+  # Copie d'éléments que j'ai sans doute personnalisés.
+  echo
+  echo "Copie du contenu personnalisé de « ${my_path}/usr/local/ » dans « /usr/local/ »."
+  echo
+
+  # Si le répertoire existe et n'est pas vide…
+  if [ -d "$my_path/usr/local/share/pixmaps" ] && [ "$(ls -A "$my_path/usr/local/share/pixmaps")" ]; then
+    sudo mkdir --parents /usr/local/share/pixmaps
+    my_cp "$my_path/usr/local/share/pixmaps/." /usr/local/share/pixmaps/
+  fi
+
+  if [ -d "$my_path/usr/local/share/applications" ] && [ "$(ls -A "$my_path/usr/local/share/applications")" ]; then
+    sudo mkdir --parents /usr/local/share/applications
+    my_cp "$my_path/usr/local/share/applications/*.desktop" /usr/local/share/applications/
+  fi
+
+  check $?
+
+  echo
+  echo "Copie du contenu personnalisé de « ${my_path}/etc/ » dans « /etc/ »."
+  echo
+
+  if [ -e "$my_path/etc/issuefg" ]; then
+    my_cp "$my_path/etc/issuefg" /etc/
   fi
 
   check $?
@@ -937,7 +992,7 @@ XKBVARIANT="fg_invert_home_end_with_pageup_pagedown,"' \
 
     # Synchronisation des changements avec la console.
     sudo setupcon
-    
+
     check $?
   fi
 }
@@ -1072,6 +1127,21 @@ config_documents_hourly_backup() {
   fi
 }
 
+config_mime() {
+  if command -v fset-default-app-for-mime-category.sh >/dev/null; then
+    echo
+    printf '%sConfiguration de l’association d’une application à toute une catégorie de types mime.%s ' "${bold}" "${reset}"
+    read -r answer
+    [ "$answer" = 'n' ] && return
+
+    command -v codium >/dev/null && fset-default-app-for-mime-category.sh text codium
+    command -v qimgv >/dev/null && fset-default-app-for-mime-category.sh image qimgv
+    command -v vlc >/dev/null && fset-default-app-for-mime-category.sh audio vlc
+    command -v mpv >/dev/null && fset-default-app-for-mime-category.sh video mpv
+    check $?
+  fi
+}
+
 # Exécution des fonctions.
 config_console
 backup_apt_sourceslist
@@ -1111,6 +1181,7 @@ install_labwc_gtktheme
 install_homebrew
 install_eid_belgium
 install_signal
+install_emailbook
 correct_perms
 config_logind
 config_grub
@@ -1135,6 +1206,7 @@ config_thunar
 config_xfce_panel
 config_xfce_session
 config_documents_hourly_backup
+config_mime
 
 echo
 echo '########'
@@ -1146,7 +1218,9 @@ echo
 
 # À FAIRE MANUELLEMENT.
 
-# Installer les dernières versions des paquets ci-dessous.
+# Installer les dernières versions des paquets ci-dessous, pour utiliser le thème Mint-Y-Purple.
 # mint-x-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-x-icons/
 # mint-y-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-y-icons/
 # mint-themes_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-themes/
+
+# Si nécecessaire, installer format_sd: https://www.sdcard.org/downloads/sd-memory-card-formatter-for-linux/

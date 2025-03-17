@@ -974,43 +974,39 @@ make_exec() {
 config_keyboard() {
   if [ -e "$XDG_CONFIG_HOME/xkb/symbols/custom" ]; then
     echo
-    printf '%sÉtablissement d’un lien symbolique entre mon clavier personnalisé et le clavier « custom » du système.%s ' "${bold}" "${reset}"
+    printf '%sConfiguration du clavier personnalisé « custom ».%s ' "${bold}" "${reset}"
     read -r answer
     [ "$answer" = 'n' ] && return
-
+    
+    echo
+    printf '%sÉtablissement d’un lien symbolique entre mon clavier personnalisé et le clavier « custom » du système.%s ' "${bold}" "${reset}"
     sudo ln -s "$XDG_CONFIG_HOME/xkb/symbols/custom" "/usr/share/X11/xkb/symbols/"
     check $?
-
+    
     echo
-    printf '%sConfiguration du clavier (choisir « une disposition définie par l’utilisateur » pour utiliser le clavier « custom »).%s ' "${bold}" "${reset}"
-    read -r answer
-    [ "$answer" = 'n' ] && return
-
-    # D'abord ceci, parce que la clavier de la console est configuré aussi?
-    sudo dpkg-reconfigure keyboard-configuration
-    check $?
-
-    echo
-    printf '%sAjout d’options à la configuration du clavier.%s ' "${bold}" "${reset}"
-    read -r answer
-    [ "$answer" = 'n' ] && return
-
-    # sudo sed --in-place 's///' /etc/default/keyboard
-    # sudo sed --in-place 's///' /etc/default/keyboard
-
+    printf '%sConfiguration du fichier système « /etc/default/keyboard ».%s ' "${bold}" "${reset}"
     echo '# KEYBOARD CONFIGURATION FILE
 # Consult the keyboard(5) manual page.
 
 XKBMODEL="pc105"
 XKBLAYOUT="custom"
 XKBOPTIONS="compose:ins,nbsp:level3n,kpdl:comma"
-BACKSPACE="guess"
-XKBVARIANT="fg_invert_home_end_with_pageup_pagedown,"' \
+BACKSPACE="guess"' \
       | sudo tee /etc/default/keyboard
+    check $?
 
-    # Synchronisation des changements avec la console.
+    echo
+    printf '%sInversion des touches Home/End et Page Up/Down.%s ' "${bold}" "${reset}"
+    read -r answer
+    [ "$answer" = 'n' ] && return
+
+    echo 'XKBVARIANT="fg_invert_home_end_with_pageup_pagedown,"' \
+      | sudo tee --append /etc/default/keyboard
+    check $?
+
+    echo
+    printf '%sSynchronisation des changements avec la console.%s ' "${bold}" "${reset}"
     sudo setupcon
-
     check $?
   fi
 }

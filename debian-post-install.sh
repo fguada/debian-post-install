@@ -20,6 +20,10 @@
 bold=$(tput bold)
 reset=$(tput sgr0)
 
+#############
+# FONCTIONS #
+#############
+
 check() {
   last_command_exit_code="$1"
 
@@ -39,13 +43,6 @@ install_name() {
   printf '%sInstallation de %s.%s ' "${bold}" "$1" "${reset}"
 }
 
-echo
-echo '##########################################'
-echo "# ${bold}SCRIPT DE POST-INSTALLATION DE DEBIAN.${reset} #"
-echo '##########################################'
-echo
-echo "Pressez « ${bold}entrée${reset} » pour confirmer chaque étape, « ${bold}n${reset} » puis « ${bold}entrée${reset} » pour la passer, ou « ${bold}ctrl-c${reset} » pour quitter."
-
 config_console() {
   echo
   printf '%sConfiguration interactive de la console.%s ' "${bold}" "${reset}"
@@ -53,6 +50,16 @@ config_console() {
   [ "$answer" = 'n' ] && return
 
   sudo dpkg-reconfigure console-setup
+  check $?
+}
+
+activate_tty2() {
+  echo
+  printf '%sActivation de la tty2.%s ' "${bold}" "${reset}"
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  sudo systemctl enable getty@tty3.service
   check $?
 }
 
@@ -215,6 +222,7 @@ mousepad \
 mpv \
 neovim \
 network-manager \
+nm-connection-editor \
 nomarch \
 odt2txt \
 pandoc \
@@ -405,7 +413,7 @@ install_dra() {
   sudo mv --force ./dra /usr/local/bin/
 
   if [ "$SHELL" = 'bash' ]; then
-    dra completion bash > ./dra
+    dra completion bash >./dra
     sudo mv --force ./dra /usr/local/share/bash-completion/completions/
   fi
 
@@ -541,7 +549,7 @@ install_massren() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  if ! command -v go > /dev/null; then
+  if ! command -v go >/dev/null; then
     install golang
   fi
 
@@ -557,7 +565,7 @@ install_cliphist() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  if ! command -v go > /dev/null; then
+  if ! command -v go >/dev/null; then
     install golang
   fi
 
@@ -572,7 +580,7 @@ install_wl_gammarelay_rs() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  if ! command -v cargo > /dev/null; then
+  if ! command -v cargo >/dev/null; then
     install cargo
   fi
 
@@ -647,7 +655,7 @@ install_hyprpicker() {
   fi
 
   cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
-  cmake --build ./build --config Release --target all -j"$(nproc 2> /dev/null || getconf NPROCESSORS_CONF)"
+  cmake --build ./build --config Release --target all -j"$(nproc 2>/dev/null || getconf NPROCESSORS_CONF)"
   sudo cmake --install build
   check $?
 
@@ -681,7 +689,7 @@ install_hyprpicker() {
   fi
 
   cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
-  cmake --build ./build --config Release --target hyprpicker -j"$(nproc 2> /dev/null || getconf _NPROCESSORS_CONF)"
+  cmake --build ./build --config Release --target hyprpicker -j"$(nproc 2>/dev/null || getconf _NPROCESSORS_CONF)"
   sudo cmake --install ./build
   check $?
 }
@@ -758,9 +766,9 @@ install_signal() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  wget -O- https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor > signal-desktop-keyring.gpg
+  wget -O- https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor >signal-desktop-keyring.gpg
   # shellcheck disable=SC2002 # Je prends cette ligne du site web: https://signal.org/fr/download/linux/.
-  cat signal-desktop-keyring.gpg | sudo tee /usr/share/keyrings/signal-desktop-keyring.gpg > /dev/null
+  cat signal-desktop-keyring.gpg | sudo tee /usr/share/keyrings/signal-desktop-keyring.gpg >/dev/null
   echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.gpg] https://updates.signal.org/desktop/apt xenial main' \
     | sudo tee /etc/apt/sources.list.d/signal-xenial.list
   sudo apt update && sudo apt install signal-desktop
@@ -768,7 +776,7 @@ install_signal() {
 }
 
 install_emailbook() {
-  if command -v aerc > /dev/null; then
+  if command -v aerc >/dev/null; then
     install_name 'emailbook (pour aerc)'
     read -r answer
     [ "$answer" = 'n' ] && return
@@ -861,13 +869,46 @@ add_rescue_user() {
   check $?
 }
 
+config_custom_desktop_files() {
+  echo
+  printf '%sConfiguration d’un fichier desktop personnalisé pour quelques applications.%s ' "${bold}" "${reset}"
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  sudo mkdir --parents /usr/local/share/applications
+
+  if command -v mpv >/dev/null; then
+    echo
+    echo 'mpv'
+    sudo cp /usr/share/applications/mpv.desktop /usr/local/share/applications/
+    sudo sed --in-place -E 's/^Exec=.+$/Exec=mpv --fullscreen --player-operation-mode=pseudo-gui -- %U/' /usr/local/share/applications/mpv.desktop
+    check $?
+  fi
+
+  if command -v vlc >/dev/null; then
+    echo
+    echo 'vlc'
+    sudo cp /usr/share/applications/vlc.desktop /usr/local/share/applications/
+    sudo sed --in-place -E 's_^Exec=.+$_Exec=/usr/bin/vlc --fullscreen --playlist-enqueue --one-instance-when-started-from-file --started-from-file %U_' /usr/local/share/applications/vlc.desktop
+    check $?
+  fi
+
+  if command -v zathura >/dev/null; then
+    echo
+    echo 'zathura'
+    sudo cp /usr/share/applications/org.pwmt.zathura.desktop /usr/local/share/applications/
+    echo 'MimeType=application/x-cbr;application/x-rar;application/x-cbz;application/zip;application/x-cb7;application/x-7z-compressed;application/x-cbt;application/x-tar;inode/directory;image/vnd.djvu;image/vnd.djvu+multipage;application/pdf;application/postscript;application/eps;application/x-eps;image/eps;image/x-eps;' | sudo tee --append /usr/local/share/applications/org.pwmt.zathura.desktop
+    check $?
+  fi
+}
+
 copy_data() {
   echo
   printf '%sCopie de données personnelles d’un périphérique de stockage externe.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  if ! command -v bashmount > /dev/null; then
+  if ! command -v bashmount >/dev/null; then
     printf '%sbashmount n’est pas installé. Ce logiciel est nécessaire à cette étape. Abandon.%s ' "${bold}" "${reset}"
     return
   fi
@@ -908,7 +949,7 @@ copy_data() {
   echo
 
   my_cp() {
-    if ! command -v cpg > /dev/null; then
+    if ! command -v cpg >/dev/null; then
       cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$1" "$2"
     else
       cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$1" "$2"
@@ -927,38 +968,38 @@ copy_data() {
   if [ -d "$my_path/usr/local/share/pixmaps" ] && [ "$(ls -A "$my_path/usr/local/share/pixmaps")" ]; then
     sudo mkdir --parents /usr/local/share/pixmaps
 
-    if ! command -v cpg > /dev/null; then
+    if ! command -v cpg >/dev/null; then
       sudo cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$my_path/usr/local/share/pixmaps/." /usr/local/share/pixmaps/
     else
       sudo cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$my_path/usr/local/share/pixmaps/." /usr/local/share/pixmaps/
     fi
   fi
 
-  if [ -d "$my_path/usr/local/share/applications" ] && [ "$(ls -A "$my_path/usr/local/share/applications")" ]; then
-    sudo mkdir --parents /usr/local/share/applications
+  # if [ -d "$my_path/usr/local/share/applications" ] && [ "$(ls -A "$my_path/usr/local/share/applications")" ]; then
+  #   sudo mkdir --parents /usr/local/share/applications
 
-    if ! command -v cpg > /dev/null; then
-      sudo cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$my_path"/usr/local/share/applications/*.desktop /usr/local/share/applications/
-    else
-      sudo cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$my_path"/usr/local/share/applications/*.desktop /usr/local/share/applications/
-    fi
-  fi
-
-  check $?
-
-  echo
-  echo "Copie du contenu personnalisé de « ${my_path}/etc/ » dans « /etc/ »."
-  echo
-
-  if [ -e "$my_path/etc/issuefg" ]; then
-    if ! command -v cpg > /dev/null; then
-      sudo cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$my_path/etc/issuefg" /etc/
-    else
-      sudo cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$my_path/etc/issuefg" /etc/
-    fi
-  fi
+  #   if ! command -v cpg >/dev/null; then
+  #     sudo cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$my_path"/usr/local/share/applications/*.desktop /usr/local/share/applications/
+  #   else
+  #     sudo cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$my_path"/usr/local/share/applications/*.desktop /usr/local/share/applications/
+  #   fi
+  # fi
 
   check $?
+
+  # echo
+  # echo "Copie du contenu personnalisé de « ${my_path}/etc/ » dans « /etc/ »."
+  # echo
+
+  # if [ -e "$my_path/etc/issuefg" ]; then
+  #   if ! command -v cpg >/dev/null; then
+  #     sudo cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$my_path/etc/issuefg" /etc/
+  #   else
+  #     sudo cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$my_path/etc/issuefg" /etc/
+  #   fi
+  # fi
+
+  # check $?
 }
 
 make_exec() {
@@ -977,12 +1018,12 @@ config_keyboard() {
     printf '%sConfiguration du clavier personnalisé « custom ».%s ' "${bold}" "${reset}"
     read -r answer
     [ "$answer" = 'n' ] && return
-    
+
     echo
     printf '%sÉtablissement d’un lien symbolique entre mon clavier personnalisé et le clavier « custom » du système.%s ' "${bold}" "${reset}"
     sudo ln -s "$XDG_CONFIG_HOME/xkb/symbols/custom" "/usr/share/X11/xkb/symbols/"
     check $?
-    
+
     echo
     printf '%sConfiguration du fichier système « /etc/default/keyboard ».%s ' "${bold}" "${reset}"
     echo '# KEYBOARD CONFIGURATION FILE
@@ -1012,7 +1053,7 @@ BACKSPACE="guess"' \
 }
 
 config_lf() {
-  if command -v lf > /dev/null; then
+  if command -v lf >/dev/null; then
     echo
     printf '%sConfiguration de lf.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1067,7 +1108,7 @@ config_systemd_services() {
 }
 
 config_thunar() {
-  if command -v thunar > /dev/null; then
+  if command -v thunar >/dev/null; then
     echo
     printf '%sConfiguration de Thunar.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1084,7 +1125,7 @@ config_thunar() {
 }
 
 config_xfce_panel() {
-  if command -v xfce4-panel > /dev/null; then
+  if command -v xfce4-panel >/dev/null; then
     echo
     printf '%sConfiguration de xfce4-panel.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1099,7 +1140,7 @@ config_xfce_panel() {
 }
 
 config_xfce_session() {
-  if command -v xfce4-session > /dev/null; then
+  if command -v xfce4-session >/dev/null; then
     echo
     printf '%sConfiguration de xfce4-session.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1113,9 +1154,9 @@ config_xfce_session() {
 }
 
 config_documents_hourly_backup() {
-  if command -v timemachine > /dev/null \
-    && command -v datedirclean.sh > /dev/null \
-    && command -v sauvegarde_locale_timemachine_Documents.sh > /dev/null; then
+  if command -v timemachine >/dev/null \
+    && command -v datedirclean.sh >/dev/null \
+    && command -v sauvegarde_locale_timemachine_Documents.sh >/dev/null; then
     echo
     printf '%sConfiguration de la sauvegarde horaire des documents cruciaux.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1142,16 +1183,16 @@ config_documents_hourly_backup() {
 }
 
 config_mime() {
-  if command -v fset-default-app-for-mime-category.sh > /dev/null; then
+  if command -v fset-default-app-for-mime-category.sh >/dev/null; then
     echo
     printf '%sConfiguration de l’association d’une application à toute une catégorie de types mime.%s ' "${bold}" "${reset}"
     read -r answer
     [ "$answer" = 'n' ] && return
 
-    command -v codium > /dev/null && fset-default-app-for-mime-category.sh text codium
-    command -v qimgv > /dev/null && fset-default-app-for-mime-category.sh image qimgv
-    command -v vlc > /dev/null && fset-default-app-for-mime-category.sh audio vlc
-    command -v mpv > /dev/null && fset-default-app-for-mime-category.sh video mpv
+    command -v codium >/dev/null && fset-default-app-for-mime-category.sh text codium
+    command -v qimgv >/dev/null && fset-default-app-for-mime-category.sh image qimgv
+    command -v vlc >/dev/null && fset-default-app-for-mime-category.sh audio vlc
+    command -v mpv >/dev/null && fset-default-app-for-mime-category.sh video mpv
     check $?
   fi
 }
@@ -1162,6 +1203,17 @@ config_tty1_nameless_login() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
+  echo
+  echo 'Préalable: création du fichier « /etc/issuefg ».'
+  echo
+
+  printf '\S \\n \l\n\nWelcome %s!\nPlease enter your password…\n' "$(getent passwd "$USER" | cut -d":" -f5 | cut -d"," -f1)" \
+    | sudo tee /etc/issuefg
+  check $?
+
+  echo
+  echo 'Configuration de la tty1'
+  echo
   sudo mkdir --parents "/etc/systemd/system/getty@tty1.service.d"
 
   echo "[Service]
@@ -1173,8 +1225,57 @@ ExecStart=-/sbin/agetty --issue-file /etc/issuefg -o '-p -- $USER' --noclear --s
   check $?
 }
 
-# Exécution des fonctions.
+forward_journald_to_tty12() {
+  # Cf. https://wiki.archlinux.org/title/Systemd/Journal#Forward_journald_to_/dev/tty12.
+  echo
+  printf '%sAffichage de journald sur la tty12.%s ' "${bold}" "${reset}"
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  sudo mkdir --parents /etc/systemd/journald.conf.d
+  echo '[Journal]
+ForwardToConsole=yes
+TTYPath=/dev/tty12' | sudo tee /etc/systemd/journald.conf.d/fw-tty12.conf
+  sudo systemctl restart systemd-journald.service
+  check $?
+}
+
+build_bat_cache() {
+  # La construction du cache est nécessaire pour utiliser un thème personnalisé.
+  if command -v bat >/dev/null; then
+    echo
+    printf '%sConstruction du cache de bat.%s ' "${bold}" "${reset}"
+    read -r answer
+    [ "$answer" = 'n' ] && return
+
+    bat cache --build
+    check $?
+  fi
+}
+
+update_locate_db() {
+  echo
+  printf '%sCréation de la base de données générale de locate.%s ' "${bold}" "${reset}"
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  sudo updatedb
+  check $?
+}
+
+#############
+# EXÉCUTION #
+#############
+
+echo
+echo '##########################################'
+echo "# ${bold}SCRIPT DE POST-INSTALLATION DE DEBIAN.${reset} #"
+echo '##########################################'
+echo
+echo "Pressez « ${bold}entrée${reset} » pour confirmer chaque étape, « ${bold}n${reset} » puis « ${bold}entrée${reset} » pour la passer, ou « ${bold}ctrl-c${reset} » pour quitter."
+
 config_console
+activate_tty2
 backup_apt_sourceslist
 config_apt_sourceslist
 update_apt
@@ -1220,6 +1321,8 @@ make_symlinks
 create_root_passwd
 config_apt_colors
 add_rescue_user
+forward_journald_to_tty12
+config_custom_desktop_files
 
 echo
 echo '###########################################'
@@ -1239,6 +1342,8 @@ config_xfce_session
 config_documents_hourly_backup
 config_mime
 config_tty1_nameless_login
+build_bat_cache
+update_locate_db
 
 echo
 echo '########'
@@ -1247,13 +1352,13 @@ echo '########'
 echo
 echo "${bold}Il est conseillé de redémarrer maintenant.${reset}"
 echo
+echo "À FAIRE MANUELLEMENT
 
-# À FAIRE MANUELLEMENT.
+- Installer les dernières versions des paquets ci-dessous, pour utiliser le thème Mint-Y-Purple.
+mint-x-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-x-icons/
+mint-y-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-y-icons/
+mint-themes_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-themes/
+- puis exécuter une fois labwc-gtktheme.py.
 
-# Installer les dernières versions des paquets ci-dessous, pour utiliser le thème Mint-Y-Purple.
-# mint-x-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-x-icons/
-# mint-y-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-y-icons/
-# mint-themes_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-themes/
-# puis exécuter une fois labwc-gtktheme.py.
-
-# Si nécecessaire, installer format_sd: https://www.sdcard.org/downloads/sd-memory-card-formatter-for-linux/
+- Si nécecessaire, installer format_sd: https://www.sdcard.org/downloads/sd-memory-card-formatter-for-linux/"
+echo

@@ -59,7 +59,7 @@ activate_tty2() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  sudo systemctl enable getty@tty3.service
+  sudo systemctl enable getty@tty2.service
   check $?
 }
 
@@ -735,6 +735,7 @@ install_labwc_gtktheme() {
   sudo cp ./labwc-gtktheme.py /usr/local/bin
 
   # La session graphique doit avoir été lancée au moins une fois avant que ce script python puisse fonctionner.
+  # À ce point il tournerait de toute façon pour rien, puisque le thème Mint-Y-Purple n'est pas installé. Or ce thème ne peut être installé que manuellement.
   # labwc-gtktheme.py
 
   check $?
@@ -830,9 +831,6 @@ make_symlinks() {
 
   sudo ln -s /usr/bin/batcat /usr/local/bin/bat
   sudo ln -s /usr/bin/fdfind /usr/local/bin/fd
-
-  # On veut clairement utiliser bat. La construction du cache est nécessaire pour utiliser un thème personnalisé.
-  bat cache --build
   check $?
 }
 
@@ -1004,16 +1002,24 @@ copy_data() {
 
 make_exec() {
   echo
-  printf '%sCorrection des permissions des répertoires « bin ».%s ' "${bold}" "${reset}"
+  printf '%sCorrection des permissions des répertoires « bin » personnels.%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  chmod +x ~/bin/* ~/.local/bin/*
+  # Uniquement si ces répertoires ne sont pas vides.
+  if [ "$(ls -A ~/bin)" ]; then
+    chmod +x ~/bin/*
+  fi
+
+  if [ "$(ls -A ~/.local/bin)" ]; then
+    chmod +x ~/.local/bin/*
+  fi
+
   check $?
 }
 
 config_keyboard() {
-  if [ -e "$XDG_CONFIG_HOME/xkb/symbols/custom" ]; then
+  if [ -e "${XDG_CONFIG_HOME:-$HOME/.config}/xkb/symbols/custom" ]; then
     echo
     printf '%sConfiguration du clavier personnalisé « custom ».%s ' "${bold}" "${reset}"
     read -r answer
@@ -1021,7 +1027,7 @@ config_keyboard() {
 
     echo
     printf '%sÉtablissement d’un lien symbolique entre mon clavier personnalisé et le clavier « custom » du système.%s ' "${bold}" "${reset}"
-    sudo ln -s "$XDG_CONFIG_HOME/xkb/symbols/custom" "/usr/share/X11/xkb/symbols/"
+    sudo ln -s "${XDG_CONFIG_HOME:-$HOME/.config}/xkb/symbols/custom" "/usr/share/X11/xkb/symbols/"
     check $?
 
     echo
@@ -1059,17 +1065,17 @@ config_lf() {
     read -r answer
     [ "$answer" = 'n' ] && return
 
-    mkdir --parents "$XDG_DATA_HOME/lf"
-    ln -s "$XDG_CONFIG_HOME/lf/marks" "$XDG_DATA_HOME/lf/"
+    mkdir --parents "${XDG_DATA_HOME:-$HOME/.local/share}/lf"
+    ln -s "${XDG_CONFIG_HOME:-$HOME/.config}/lf/marks" "${XDG_DATA_HOME:-$HOME/.local/share}/lf/"
 
     # Rendre exécutable le script de nettoyage des images affichées par lf dans kitty.
-    chmod +x "$XDG_CONFIG_HOME/lf/lf_kitty_clean"
+    chmod +x "${XDG_CONFIG_HOME:-$HOME/.config}/lf/lf_kitty_clean"
     check $?
   fi
 }
 
 correct_ssh_perms() {
-  if [ -d "$HOME/.ssh/" ]; then
+  if [ -d "$HOME/.ssh/" ] && [ "$(ls -A "$HOME/.ssh/")" ]; then
     echo
     printf '%sCorrection des permissions de mes clés ssh.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1314,6 +1320,12 @@ install_homebrew
 install_eid_belgium
 install_signal
 install_emailbook
+
+echo
+echo '############################'
+echo "# ${bold}CONFIGURATION DU SYSTÈME.${reset} #"
+echo '############################'
+
 correct_perms
 config_logind
 config_grub
@@ -1354,7 +1366,9 @@ echo "${bold}Il est conseillé de redémarrer maintenant.${reset}"
 echo
 echo "À FAIRE MANUELLEMENT
 
-- Installer les dernières versions des paquets ci-dessous, pour utiliser le thème Mint-Y-Purple.
+- Si l’installation a été faite en Wi-Fi, il est possible que ce soit dhcpcd qui prenne en charge les connexions Wi-Fi et non Network Manager, ce qui empêche de se connecter facilement à de nouveaux réseaux. Solution: supprimer toutes les autres interfaces que « lo » dans le fichier « /etc/network/interfaces », puis redémarrer.
+
+- Installer les dernières versions des paquets ci-dessous pour utiliser le thème Mint-Y-Purple.
 mint-x-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-x-icons/
 mint-y-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-y-icons/
 mint-themes_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-themes/

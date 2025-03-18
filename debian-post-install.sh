@@ -295,7 +295,13 @@ libcairo2-dev \
 libpango1.0-dev \
 libpugixml-dev \
 libwayland-client-extra++1 \
-libwayland-dev"
+libwayland-dev
+pipewire \
+pipewire-bin \
+pipewire-pulse \
+wireplumber \
+xfce4-appfinder \
+catfish"
   # fontforge \
   # python3-fontforge"
   # wmctrl \
@@ -900,6 +906,19 @@ config_custom_desktop_files() {
   fi
 }
 
+decrease_systemd_timeout() {
+  echo
+  printf '%sDiminution drastique du temps d’attente qu’un job se termine à la déconnexion.%s ' "${bold}" "${reset}"
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  sudo mkdir --parents /etc/systemd/user.conf.d/
+  printf '# Fichier créé par le script %s.\n\nDefaultTimeoutStopSec=5s\nDefaultTimeoutAbortSec=10s' "$(basename "$0")" \
+    | sudo tee /etc/systemd/user.conf.d/timeoutstop.conf
+  sudo systemctl daemon-reload
+  check $?
+}
+
 copy_data() {
   echo
   printf '%sCopie de données personnelles d’un périphérique de stockage externe.%s ' "${bold}" "${reset}"
@@ -1335,6 +1354,7 @@ config_apt_colors
 add_rescue_user
 forward_journald_to_tty12
 config_custom_desktop_files
+decrease_systemd_timeout
 
 echo
 echo '###########################################'
@@ -1364,7 +1384,15 @@ echo '########'
 echo
 echo "${bold}Il est conseillé de redémarrer maintenant.${reset}"
 echo
-echo "À FAIRE MANUELLEMENT
+echo "À FAIRE MANUELLEMENT après redémarrage
+
+- Supprimer les fichiers obsolètes suivants:
+  - ~/.wget-hsts
+  - ~/.bash_history
+
+- Cloner en ssh mes repos:
+  - git clone git@github.com:fguada/debian-post-install.git
+  - git clone git@github.com:fguada/fguada.github.io.git
 
 - Si l’installation a été faite en Wi-Fi, il est possible que ce soit dhcpcd qui prenne en charge les connexions Wi-Fi et non Network Manager, ce qui empêche de se connecter facilement à de nouveaux réseaux. Solution: supprimer toutes les autres interfaces que « lo » dans le fichier « /etc/network/interfaces », puis redémarrer.
 
@@ -1372,7 +1400,9 @@ echo "À FAIRE MANUELLEMENT
 mint-x-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-x-icons/
 mint-y-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-y-icons/
 mint-themes_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-themes/
-- puis exécuter une fois labwc-gtktheme.py.
+- puis exécuter labwc-gtktheme.py (ainsi qu'à chaque mise à jour du thème).
+
+- Copier la musique, les photos et vidéos.
 
 - Si nécecessaire, installer format_sd: https://www.sdcard.org/downloads/sd-memory-card-formatter-for-linux/"
 echo

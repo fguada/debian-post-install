@@ -882,7 +882,6 @@ config_custom_desktop_files() {
   sudo mkdir --parents /usr/local/share/applications
 
   if command -v mpv >/dev/null; then
-    echo
     echo 'mpv'
     sudo cp /usr/share/applications/mpv.desktop /usr/local/share/applications/
     sudo sed --in-place -E 's/^Exec=.+$/Exec=mpv --fullscreen --player-operation-mode=pseudo-gui -- %U/' /usr/local/share/applications/mpv.desktop
@@ -902,6 +901,7 @@ config_custom_desktop_files() {
     echo 'zathura'
     sudo cp /usr/share/applications/org.pwmt.zathura.desktop /usr/local/share/applications/
     echo 'MimeType=application/x-cbr;application/x-rar;application/x-cbz;application/zip;application/x-cb7;application/x-7z-compressed;application/x-cbt;application/x-tar;inode/directory;image/vnd.djvu;image/vnd.djvu+multipage;application/pdf;application/postscript;application/eps;application/x-eps;image/eps;image/x-eps;' | sudo tee --append /usr/local/share/applications/org.pwmt.zathura.desktop
+    echo
     check $?
   fi
 }
@@ -1345,7 +1345,6 @@ echo '############################'
 echo "# ${bold}CONFIGURATION DU SYSTÈME.${reset} #"
 echo '############################'
 
-correct_perms
 config_logind
 config_grub
 make_symlinks
@@ -1375,6 +1374,7 @@ config_documents_hourly_backup
 config_mime
 config_tty1_nameless_login
 build_bat_cache
+correct_perms
 update_locate_db
 
 echo

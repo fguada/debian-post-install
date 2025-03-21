@@ -887,6 +887,7 @@ config_custom_desktop_files() {
   [ "$answer" = 'n' ] && return
 
   sudo mkdir --parents /usr/local/share/applications
+  mkdir --parents ~/.local/share/applications
 
   if command -v mpv >/dev/null; then
     echo 'mpv'
@@ -1094,7 +1095,7 @@ BACKSPACE="guess"' \
     read -r answer
     [ "$answer" = 'n' ] && return
 
-    echo 'XKBVARIANT="fg_invert_home_end_with_pageup_pagedown,"' \
+    echo 'XKBVARIANT="fg_invert_home_end_with_pageup_pagedown"' \
       | sudo tee --append /etc/default/keyboard
     check $?
 
@@ -1143,7 +1144,7 @@ config_default_editor() {
   check $?
 }
 
-## Désactiver certains services inutiles (il peut aussi être nécessaires de les masquer, pour empêcher que d'autres processus ne les lancent).
+## Désactiver certains services inutiles (il peut aussi être nécessaires de les masquer, pour empêcher que d'autres processus ne les relancent).
 config_systemd_services() {
   echo
   printf '%sConfiguration de services de systemd.%s ' "${bold}" "${reset}"
@@ -1224,7 +1225,7 @@ config_documents_hourly_backup() {
     # Ajustement des permissions dudit répertoire.
     sudo chmod 700 "/home/sauvegardes/$USER"
 
-    # Paramétrage de la chronicité de la sauvegarde.
+    # Paramétrage de la fréquence de la sauvegarde.
     echo "@hourly $(which sauvegarde_locale_timemachine_Documents.sh)" | crontab -
 
     # Paramétrage de la suppression automatique des sauvegardes les plus anciennes.
@@ -1573,7 +1574,6 @@ add_rescue_user
 config_shell_options_and_aliases
 create_dollar_script
 forward_journald_to_tty12
-config_custom_desktop_files
 decrease_systemd_timeout
 
 echo
@@ -1592,6 +1592,7 @@ config_thunar
 config_xfce_panel
 config_xfce_session
 config_documents_hourly_backup
+config_custom_desktop_files
 config_mime
 config_tty1_nameless_login
 build_bat_cache

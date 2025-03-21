@@ -1085,7 +1085,7 @@ config_keyboard() {
 
 XKBMODEL="pc105"
 XKBLAYOUT="custom"
-XKBOPTIONS="compose:ins,nbsp:level3n,kpdl:comma"
+XKBOPTIONS="terminate:ctrl_alt_bksp,compose:ins,nbsp:level3n,kpdl:comma,numpad:mac"
 BACKSPACE="guess"' \
       | sudo tee /etc/default/keyboard
     check $?

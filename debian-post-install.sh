@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=SC2034
+# shellcheck disable=SC2034,SC1110
 
 #set -o errexit
 # set -o nounset
@@ -17,12 +17,12 @@
 # cd ./debian-post-install
 # sh ./debian-post-install.sh
 
+###############
+# UTILITAIRES #
+###############
+
 bold=$(tput bold)
 reset=$(tput sgr0)
-
-#############
-# FONCTIONS #
-#############
 
 check() {
   last_command_exit_code="$1"
@@ -42,6 +42,10 @@ install_name() {
   echo
   printf '%sInstallation de %s.%s ' "${bold}" "$1" "${reset}"
 }
+
+#############
+# FONCTIONS #
+#############
 
 config_console() {
   echo
@@ -864,12 +868,15 @@ config_apt_colors() {
 }
 
 add_rescue_user() {
+  user_name=toto
+
   echo
-  printf '%sAjout d’un utilisateur de secours: toto.%s ' "${bold}" "${reset}"
+  printf '%sAjout d’un utilisateur de secours: %s.%s ' "${bold}" "$user_name" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  sudo useradd toto
+  # `adduser` est une commande spécifique à Debian et à ses dérivées.
+  sudo adduser "$user_name"
   check $?
 }
 
@@ -883,7 +890,7 @@ config_custom_desktop_files() {
 
   if command -v mpv >/dev/null; then
     echo 'mpv'
-    sudo cp /usr/share/applications/mpv.desktop /usr/local/share/applications/
+    sudo cp --force /usr/share/applications/mpv.desktop /usr/local/share/applications/
     sudo sed --in-place -E 's/^Exec=.+$/Exec=mpv --fullscreen --player-operation-mode=pseudo-gui -- %U/' /usr/local/share/applications/mpv.desktop
     check $?
   fi
@@ -891,7 +898,7 @@ config_custom_desktop_files() {
   if command -v vlc >/dev/null; then
     echo
     echo 'vlc'
-    sudo cp /usr/share/applications/vlc.desktop /usr/local/share/applications/
+    sudo cp --force /usr/share/applications/vlc.desktop /usr/local/share/applications/
     sudo sed --in-place -E 's_^Exec=.+$_Exec=/usr/bin/vlc --fullscreen --playlist-enqueue --one-instance-when-started-from-file --started-from-file %U_' /usr/local/share/applications/vlc.desktop
     check $?
   fi
@@ -899,10 +906,31 @@ config_custom_desktop_files() {
   if command -v zathura >/dev/null; then
     echo
     echo 'zathura'
-    sudo cp /usr/share/applications/org.pwmt.zathura.desktop /usr/local/share/applications/
+    sudo cp --force /usr/share/applications/org.pwmt.zathura.desktop /usr/local/share/applications/
     echo 'MimeType=application/x-cbr;application/x-rar;application/x-cbz;application/zip;application/x-cb7;application/x-7z-compressed;application/x-cbt;application/x-tar;inode/directory;image/vnd.djvu;image/vnd.djvu+multipage;application/pdf;application/postscript;application/eps;application/x-eps;image/eps;image/x-eps;' | sudo tee --append /usr/local/share/applications/org.pwmt.zathura.desktop
-    echo
+    # echo
     check $?
+  fi
+
+  # Configuration dans le répertoire personnel de l'utilisateur, car dépendant d'un script qui n'est pas globalement accessible.
+  if command -v run-gui-root-wl.sh >/dev/null; then
+    if command -v timeshift >/dev/null; then
+      echo
+      echo 'timeshift'
+      cp --force /usr/share/applications/timeshift-gtk.desktop ~/.local/share/applications/
+      sed --in-place 's/^Exec=/Exec=run-gui-root-wl.sh /' ~/.local/share/applications/timeshift-gtk.desktop
+      # echo
+      check $?
+    fi
+
+    if command -v /sbin/gparted >/dev/null; then
+      echo
+      echo 'gparted'
+      cp --force /usr/share/applications/gparted.desktop ~/.local/share/applications/
+      sed --in-place 's/^Exec=/Exec=run-gui-root-wl.sh /' ~/.local/share/applications/gparted.desktop
+      # echo
+      check $?
+    fi
   fi
 }
 
@@ -1193,6 +1221,9 @@ config_documents_hourly_backup() {
     # Ajustement du propriétaire dudit répertoire.
     sudo chown --changes --recursive "$USER":"$USER" "/home/sauvegardes/$USER"
 
+    # Ajustement des permissions dudit répertoire.
+    sudo chmod 700 "/home/sauvegardes/$USER"
+
     # Paramétrage de la chronicité de la sauvegarde.
     echo "@hourly $(which sauvegarde_locale_timemachine_Documents.sh)" | crontab -
 
@@ -1250,6 +1281,166 @@ ExecStart=-/sbin/agetty --issue-file /etc/issuefg -o '-p -- $USER' --noclear --s
   check $?
 }
 
+config_shell_options_and_aliases() {
+  echo
+  printf '%sConfiguration des options et alias par défaut du shell.%s ' "${bold}" "${reset}"
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  # shellcheck disable=SC2016
+  echo '
+######
+# FG #
+######
+
+######################
+# ALIAS ET FONCTIONS #
+######################
+
+# toujours afficher la liste des fichiers avec 1 élément par lignes sauf . et ..
+alias ls="ls --group-directories-first --human-readable --classify -l --color=auto --time-style=+\"%Y-%m-%d %H:%M:%S\""
+
+# toujours afficher la liste des fichiers avec 1 élément par lignes, les éléments invisibles sauf . et .. ; mnémonique: "ls all"
+alias lsa="ls --group-directories-first --human-readable --classify -l --color=auto --time-style=+\"%Y-%m-%d %H:%M:%S\" --almost-all"
+
+alias ..="cd .."         # Go up one directory
+alias cd..="cd .."       # Common misspelling for going up one directory
+alias ...="cd ../.."     # Go up two directories
+alias ....="cd ../../.." # Go up three directories
+
+# settings that you pretty much just always are going to want
+alias \
+  rm="rm --interactive=once --force --verbose --recursive --one-file-system" \
+  bc="bc --quiet" \
+  mkdir="mkdir --parents --verbose"
+
+# Une version de cp conforme à mon habitude des gestionnaires de fichiers graphiques: une barre de progression pour les opérations lentes, et une adaptation des propriétés des fichiers copiés au dossier dans lequel ils l’ont été (par défaut cp copie les propriétés de la source).
+if command -v cpg >/dev/null; then
+  alias cp="cpg --strip-trailing-slashes --reflink=auto --recursive --no-preserve=mode,ownership --progress-bar"
+fi
+
+if command -v mvg >/dev/null; then
+  alias mv="mvg --strip-trailing-slashes --progress-bar"
+fi
+
+if command -v lf >/dev/null 2>/dev/null; then	
+  l() {
+  	cd "$(lf -print-last-dir "$@")" || return
+  }
+fi
+
+# df pour les humains!
+alias df="df --local --human-readable --exclude-type=tmpfs --exclude-type=devtmpfs --exclude-type=efivarfs --output=target,size,used,avail,pcent,fstype,source"
+
+if command -v duf >/dev/null 2>/dev/null; then
+  # afficher la taille et l’espace libre des volumes; alternative plus jolie à df
+  alias duf="duf --only local"
+fi
+
+if command -v dust >/dev/null 2>/dev/null; then
+  # afficher les dossiers triés par taille; alternative plus jolie à du (à partir de trixie)
+  alias dust="dust --limit-filesystem"
+fi
+
+du() {
+  if command -v diskus >/dev/null 2>/dev/null; then
+    # Affichage identique à du -sh ci-dessous, mais plus rapide car parallélisé.
+    diskus # https://github.com/sharkdp/diskus
+  else
+    du --summarize --human-readable --one-file-system
+  fi
+}
+
+###########
+# CLAVIER #
+###########
+
+# faire en sorte que ctrl+backspace efface le mot précédent
+stty werase "^H"
+
+##########################################
+# OPTIONS SPÉCIFIQUES À BASH #
+##########################################
+
+## GENERAL OPTIONS ##
+## https://github.com/mrzool/bash-sensible/blob/master/sensible.bash
+
+# Prevent file overwrite on stdout redirection
+# Use `>|` to force redirection to an existing file
+set -o noclobber
+
+# Update window size after every command:
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# Turn on recursive globbing (enables ** to recurse all directories)
+# If set, the pattern "**" used in a pathname expansion context will
+# match all files and zero or more directories and subdirectories.
+shopt -s globstar 2>/dev/null
+
+# Case-insensitive globbing (used in pathname expansion)
+shopt -s nocaseglob
+
+## SANE HISTORY DEFAULTS ##
+
+# Append to the history file, don’t overwrite it
+shopt -s histappend
+
+# Save multi-line commands as one command
+shopt -s cmdhist
+
+# After each command, append to the history file and reread it
+export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
+
+# Huge history. Doesn’t appear to slow things down, so why not?
+HISTSIZE=5000
+HISTFILESIZE=10000
+
+# Don’t record some commands
+export HISTIGNORE="&:[ ]*:exit:cd*:ls:bg:fg:history:clear:hs:*.sh:bm:bp:lsa:..:...:...."
+
+# Use standard ISO 8601 timestamp
+# %F equivalent to %Y-%m-%d
+# %T equivalent to %H:%M:%S (24-hours format)
+HISTTIMEFORMAT="%F %T "
+
+## BETTER DIRECTORY NAVIGATION ##
+
+# Prepend cd to directory names automatically
+shopt -s autocd
+# Correct spelling errors during tab-completion
+shopt -s dirspell
+# Correct spelling errors in arguments supplied to cd
+shopt -s cdspell
+' \
+    | sudo tee --append '/etc/skel/.bashrc'
+
+  if [ -f "$XDG_CONFIG_HOME/readline/inputrc" ]; then
+    sudo cp --force "$XDG_CONFIG_HOME/readline/inputrc" /etc/skel/.inputrc
+  fi
+
+  # Copie des fichiers par défaut dans les répertoires home des utilisateurs.
+  sudo cp --force --recursive /etc/skel/. /root/
+
+  if [ -d /home/toto ]; then
+    sudo cp --force --recursive /etc/skel/. /home/toto/
+  fi
+
+  check $?
+}
+
+create_dollar_script() {
+  echo
+  printf '%sCréer dans /usr/local/bin un script permettant d’exécuter une ligne commençant par un dollar.%s ' "${bold}" "${reset}"
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  printf '#!/bin/sh\neval "$*"' | sudo tee /usr/local/bin/$
+  sudo chmod +x /usr/local/bin/$
+  check $?
+}
+
 forward_journald_to_tty12() {
   # Cf. https://wiki.archlinux.org/title/Systemd/Journal#Forward_journald_to_/dev/tty12.
   echo
@@ -1286,6 +1477,34 @@ update_locate_db() {
 
   sudo updatedb
   check $?
+}
+
+show_what_to_do_manually() {
+  echo
+  echo "À FAIRE MANUELLEMENT après redémarrage
+
+- Activer Timeshift: sudo timeshift-gtk
+
+- Supprimer les fichiers obsolètes suivants:
+  - ~/.wget-hsts
+  - ~/.bash_history
+
+- Cloner en ssh mes repos:
+  - git clone git@github.com:fguada/debian-post-install.git
+  - git clone git@github.com:fguada/fguada.github.io.git
+
+- Si l’installation a été faite en Wi-Fi, il est possible que ce soit dhcpcd qui prenne en charge les connexions Wi-Fi et non Network Manager, ce qui empêche de se connecter facilement à de nouveaux réseaux. Solution: supprimer toutes les autres interfaces que « lo » dans le fichier « /etc/network/interfaces », puis redémarrer.
+
+- Installer les dernières versions des paquets ci-dessous pour utiliser le thème Mint-Y-Purple.
+  mint-x-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-x-icons/
+  mint-y-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-y-icons/
+  mint-themes_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-themes/
+- puis exécuter labwc-gtktheme.py (ainsi qu’à chaque mise à jour du thème).
+
+- Copier la musique, les photos et vidéos.
+
+- Si nécecessaire, installer format_sd: https://www.sdcard.org/downloads/sd-memory-card-formatter-for-linux/"
+  echo
 }
 
 #############
@@ -1351,6 +1570,8 @@ make_symlinks
 create_root_passwd
 config_apt_colors
 add_rescue_user
+config_shell_options_and_aliases
+create_dollar_script
 forward_journald_to_tty12
 config_custom_desktop_files
 decrease_systemd_timeout
@@ -1366,7 +1587,7 @@ config_keyboard
 config_lf
 correct_ssh_perms
 config_default_editor
-# config_systemd_services
+config_systemd_services
 config_thunar
 config_xfce_panel
 config_xfce_session
@@ -1383,26 +1604,5 @@ echo "# ${bold}FIN.${reset} #"
 echo '########'
 echo
 echo "${bold}Il est conseillé de redémarrer maintenant.${reset}"
-echo
-echo "À FAIRE MANUELLEMENT après redémarrage
 
-- Supprimer les fichiers obsolètes suivants:
-  - ~/.wget-hsts
-  - ~/.bash_history
-
-- Cloner en ssh mes repos:
-  - git clone git@github.com:fguada/debian-post-install.git
-  - git clone git@github.com:fguada/fguada.github.io.git
-
-- Si l’installation a été faite en Wi-Fi, il est possible que ce soit dhcpcd qui prenne en charge les connexions Wi-Fi et non Network Manager, ce qui empêche de se connecter facilement à de nouveaux réseaux. Solution: supprimer toutes les autres interfaces que « lo » dans le fichier « /etc/network/interfaces », puis redémarrer.
-
-- Installer les dernières versions des paquets ci-dessous pour utiliser le thème Mint-Y-Purple.
-mint-x-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-x-icons/
-mint-y-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-y-icons/
-mint-themes_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-themes/
-- puis exécuter labwc-gtktheme.py (ainsi qu'à chaque mise à jour du thème).
-
-- Copier la musique, les photos et vidéos.
-
-- Si nécecessaire, installer format_sd: https://www.sdcard.org/downloads/sd-memory-card-formatter-for-linux/"
-echo
+show_what_to_do_manually

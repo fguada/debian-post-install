@@ -300,9 +300,7 @@ libpango1.0-dev \
 libpugixml-dev \
 libwayland-client-extra++1 \
 libwayland-dev
-pipewire \
-pipewire-bin \
-pipewire-pulse \
+pipewire-audio \
 wireplumber \
 xfce4-appfinder \
 odt2txt \

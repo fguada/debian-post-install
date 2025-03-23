@@ -158,6 +158,7 @@ eject \
 e2fsprogs \
 exfatprogs \
 exif \
+libimage-exiftool-perl \
 eza \
 fastfetch \
 fd-find \
@@ -228,7 +229,6 @@ neovim \
 network-manager \
 nm-connection-editor \
 nomarch \
-odt2txt \
 pandoc \
 parallel \
 pdfarranger \
@@ -305,14 +305,15 @@ pipewire-bin \
 pipewire-pulse \
 wireplumber \
 xfce4-appfinder \
-catfish"
+odt2txt \
+catfish \
+ods2tsv"
   # fontforge \
   # python3-fontforge"
   # wmctrl \
   # abcde \
   # archivemount \
   # atril \
-  # catfish \
   # featherpad \
   # network-manager-gnome \
   # numlockx \
@@ -332,7 +333,6 @@ catfish"
   # xclip \
   # xdotool \
   # xfce4 \
-  # xfce4-appfinder \
   # xfce4-notifyd \
   # xfce4-panel \
   # xfce4-power-manager \

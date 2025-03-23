@@ -307,6 +307,9 @@ wireplumber \
 xfce4-appfinder \
 odt2txt \
 catfish \
+pavucontrol-qt \
+pavucontrol-qt-l10n \
+pulsemixer \
 ods2tsv"
   # fontforge \
   # python3-fontforge"
@@ -319,8 +322,6 @@ ods2tsv"
   # numlockx \
   # parted \
   # partitionmanager \
-  # pavucontrol-qt \
-  # pavucontrol-qt-l10n \
   # qpdf \
   # quodlibet \
   # sxhkd \
@@ -423,7 +424,7 @@ install_dra() {
   sudo mv --force ./dra /usr/local/bin/
 
   if [ "$SHELL" = 'bash' ]; then
-    dra completion bash >./dra
+    dra completion bash > ./dra
     sudo mv --force ./dra /usr/local/share/bash-completion/completions/
   fi
 
@@ -559,7 +560,7 @@ install_massren() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  if ! command -v go >/dev/null; then
+  if ! command -v go > /dev/null; then
     install golang
   fi
 
@@ -575,7 +576,7 @@ install_cliphist() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  if ! command -v go >/dev/null; then
+  if ! command -v go > /dev/null; then
     install golang
   fi
 
@@ -590,7 +591,7 @@ install_wl_gammarelay_rs() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  if ! command -v cargo >/dev/null; then
+  if ! command -v cargo > /dev/null; then
     install cargo
   fi
 
@@ -665,7 +666,7 @@ install_hyprpicker() {
   fi
 
   cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
-  cmake --build ./build --config Release --target all -j"$(nproc 2>/dev/null || getconf NPROCESSORS_CONF)"
+  cmake --build ./build --config Release --target all -j"$(nproc 2> /dev/null || getconf NPROCESSORS_CONF)"
   sudo cmake --install build
   check $?
 
@@ -699,7 +700,7 @@ install_hyprpicker() {
   fi
 
   cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
-  cmake --build ./build --config Release --target hyprpicker -j"$(nproc 2>/dev/null || getconf _NPROCESSORS_CONF)"
+  cmake --build ./build --config Release --target hyprpicker -j"$(nproc 2> /dev/null || getconf _NPROCESSORS_CONF)"
   sudo cmake --install ./build
   check $?
 }
@@ -777,9 +778,9 @@ install_signal() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  wget -O- https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor >signal-desktop-keyring.gpg
+  wget -O- https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor > signal-desktop-keyring.gpg
   # shellcheck disable=SC2002 # Je prends cette ligne du site web: https://signal.org/fr/download/linux/.
-  cat signal-desktop-keyring.gpg | sudo tee /usr/share/keyrings/signal-desktop-keyring.gpg >/dev/null
+  cat signal-desktop-keyring.gpg | sudo tee /usr/share/keyrings/signal-desktop-keyring.gpg > /dev/null
   echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.gpg] https://updates.signal.org/desktop/apt xenial main' \
     | sudo tee /etc/apt/sources.list.d/signal-xenial.list
   sudo apt update && sudo apt install signal-desktop
@@ -787,7 +788,7 @@ install_signal() {
 }
 
 install_emailbook() {
-  if command -v aerc >/dev/null; then
+  if command -v aerc > /dev/null; then
     install_name 'emailbook (pour aerc)'
     read -r answer
     [ "$answer" = 'n' ] && return
@@ -889,14 +890,14 @@ config_custom_desktop_files() {
   sudo mkdir --parents /usr/local/share/applications
   mkdir --parents ~/.local/share/applications
 
-  if command -v mpv >/dev/null; then
+  if command -v mpv > /dev/null; then
     echo 'mpv'
     sudo cp --force /usr/share/applications/mpv.desktop /usr/local/share/applications/
     sudo sed --in-place -E 's/^Exec=.+$/Exec=mpv --fullscreen --player-operation-mode=pseudo-gui -- %U/' /usr/local/share/applications/mpv.desktop
     check $?
   fi
 
-  if command -v vlc >/dev/null; then
+  if command -v vlc > /dev/null; then
     echo
     echo 'vlc'
     sudo cp --force /usr/share/applications/vlc.desktop /usr/local/share/applications/
@@ -904,7 +905,7 @@ config_custom_desktop_files() {
     check $?
   fi
 
-  if command -v zathura >/dev/null; then
+  if command -v zathura > /dev/null; then
     echo
     echo 'zathura'
     sudo cp --force /usr/share/applications/org.pwmt.zathura.desktop /usr/local/share/applications/
@@ -914,8 +915,8 @@ config_custom_desktop_files() {
   fi
 
   # Configuration dans le répertoire personnel de l'utilisateur, car dépendant d'un script qui n'est pas globalement accessible.
-  if command -v run-gui-root-wl.sh >/dev/null; then
-    if command -v timeshift >/dev/null; then
+  if command -v run-gui-root-wl.sh > /dev/null; then
+    if command -v timeshift > /dev/null; then
       echo
       echo 'timeshift'
       cp --force /usr/share/applications/timeshift-gtk.desktop ~/.local/share/applications/
@@ -924,7 +925,7 @@ config_custom_desktop_files() {
       check $?
     fi
 
-    if command -v /sbin/gparted >/dev/null; then
+    if command -v /sbin/gparted > /dev/null; then
       echo
       echo 'gparted'
       cp --force /usr/share/applications/gparted.desktop ~/.local/share/applications/
@@ -954,7 +955,7 @@ copy_data() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  if ! command -v bashmount >/dev/null; then
+  if ! command -v bashmount > /dev/null; then
     printf '%sbashmount n’est pas installé. Ce logiciel est nécessaire à cette étape. Abandon.%s ' "${bold}" "${reset}"
     return
   fi
@@ -995,7 +996,7 @@ copy_data() {
   echo
 
   my_cp() {
-    if ! command -v cpg >/dev/null; then
+    if ! command -v cpg > /dev/null; then
       cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$1" "$2"
     else
       cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$1" "$2"
@@ -1014,7 +1015,7 @@ copy_data() {
   if [ -d "$my_path/usr/local/share/pixmaps" ] && [ "$(ls -A "$my_path/usr/local/share/pixmaps")" ]; then
     sudo mkdir --parents /usr/local/share/pixmaps
 
-    if ! command -v cpg >/dev/null; then
+    if ! command -v cpg > /dev/null; then
       sudo cp --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force -- "$my_path/usr/local/share/pixmaps/." /usr/local/share/pixmaps/
     else
       sudo cpg --strip-trailing-slashes --reflink=auto --no-preserve=mode,ownership --recursive --force --progress-bar -- "$my_path/usr/local/share/pixmaps/." /usr/local/share/pixmaps/
@@ -1107,7 +1108,7 @@ BACKSPACE="guess"' \
 }
 
 config_lf() {
-  if command -v lf >/dev/null; then
+  if command -v lf > /dev/null; then
     echo
     printf '%sConfiguration de lf.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1162,7 +1163,7 @@ config_systemd_services() {
 }
 
 config_thunar() {
-  if command -v thunar >/dev/null; then
+  if command -v thunar > /dev/null; then
     echo
     printf '%sConfiguration de Thunar.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1179,7 +1180,7 @@ config_thunar() {
 }
 
 config_xfce_panel() {
-  if command -v xfce4-panel >/dev/null; then
+  if command -v xfce4-panel > /dev/null; then
     echo
     printf '%sConfiguration de xfce4-panel.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1194,7 +1195,7 @@ config_xfce_panel() {
 }
 
 config_xfce_session() {
-  if command -v xfce4-session >/dev/null; then
+  if command -v xfce4-session > /dev/null; then
     echo
     printf '%sConfiguration de xfce4-session.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1208,9 +1209,9 @@ config_xfce_session() {
 }
 
 config_documents_hourly_backup() {
-  if command -v timemachine >/dev/null \
-    && command -v datedirclean.sh >/dev/null \
-    && command -v sauvegarde_locale_timemachine_Documents.sh >/dev/null; then
+  if command -v timemachine > /dev/null \
+    && command -v datedirclean.sh > /dev/null \
+    && command -v sauvegarde_locale_timemachine_Documents.sh > /dev/null; then
     echo
     printf '%sConfiguration de la sauvegarde horaire des documents cruciaux.%s ' "${bold}" "${reset}"
     read -r answer
@@ -1240,16 +1241,16 @@ config_documents_hourly_backup() {
 }
 
 config_mime() {
-  if command -v fset-default-app-for-mime-category.sh >/dev/null; then
+  if command -v fset-default-app-for-mime-category.sh > /dev/null; then
     echo
     printf '%sConfiguration de l’association d’une application à toute une catégorie de types mime.%s ' "${bold}" "${reset}"
     read -r answer
     [ "$answer" = 'n' ] && return
 
-    command -v codium >/dev/null && fset-default-app-for-mime-category.sh text codium
-    command -v qimgv >/dev/null && fset-default-app-for-mime-category.sh image qimgv
-    command -v vlc >/dev/null && fset-default-app-for-mime-category.sh audio vlc
-    command -v mpv >/dev/null && fset-default-app-for-mime-category.sh video mpv
+    command -v codium > /dev/null && fset-default-app-for-mime-category.sh text codium
+    command -v qimgv > /dev/null && fset-default-app-for-mime-category.sh image qimgv
+    command -v vlc > /dev/null && fset-default-app-for-mime-category.sh audio vlc
+    command -v mpv > /dev/null && fset-default-app-for-mime-category.sh video mpv
     check $?
   fi
 }
@@ -1459,7 +1460,7 @@ TTYPath=/dev/tty12' | sudo tee /etc/systemd/journald.conf.d/fw-tty12.conf
 
 build_bat_cache() {
   # La construction du cache est nécessaire pour utiliser un thème personnalisé.
-  if command -v bat >/dev/null; then
+  if command -v bat > /dev/null; then
     echo
     printf '%sConstruction du cache de bat.%s ' "${bold}" "${reset}"
     read -r answer

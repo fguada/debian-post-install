@@ -309,6 +309,7 @@ pavucontrol-qt \
 pavucontrol-qt-l10n \
 pulsemixer \
 ods2tsv"
+  # cmus ?
   # fontforge \
   # python3-fontforge"
   # wmctrl \
@@ -940,9 +941,9 @@ decrease_systemd_timeout() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  sudo mkdir --parents /etc/systemd/user.conf.d/
+  sudo mkdir --parents /etc/systemd/logind.conf.d/
   printf '# Fichier créé par le script %s.\n\nDefaultTimeoutStopSec=5s\nDefaultTimeoutAbortSec=10s' "$(basename "$0")" \
-    | sudo tee /etc/systemd/user.conf.d/timeoutstop.conf
+    | sudo tee /etc/systemd/logind.conf.d/timeoutstop.conf
   sudo systemctl daemon-reload
   check $?
 }
@@ -1502,6 +1503,10 @@ show_what_to_do_manually() {
 - puis exécuter labwc-gtktheme.py (ainsi qu’à chaque mise à jour du thème).
 
 - Copier la musique, les photos et vidéos.
+
+- Éventuellement, installer grub-customizer, notamment pour modifier facilement la taille de la police.
+  L'option « splash » peut être passée au noyau pour un démarrage plus discret visuellement.
+  Le Dell Latitude 5500 nécessite que l'option « dis_ucode_ldr » soit passée au noyau.
 
 - Si nécecessaire, installer format_sd: https://www.sdcard.org/downloads/sd-memory-card-formatter-for-linux/"
   echo

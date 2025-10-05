@@ -615,17 +615,6 @@ install_wl_gammarelay_rs() {
   check $?
 }
 
-install_wlinhibit() {
-  install_name wlinhibit
-  read -r answer
-  [ "$answer" = 'n' ] && return
-
-  dra download --select "x86_64-unknown-linux-gnu" 0x5a4/wlinhibit
-  sudo mv --force ./"x86_64-unknown-linux-gnu" /usr/local/bin/wlinhibit
-  sudo chmod +x /usr/local/bin/wlinhibit
-  check $?
-}
-
 install_vscodium() {
   install_name VSCodium
   read -r answer
@@ -1570,7 +1559,6 @@ install_advcpmv
 install_massren
 install_cliphist
 install_wl_gammarelay_rs
-install_wlinhibit
 install_vscodium
 install_batsignal
 install_hyprpicker

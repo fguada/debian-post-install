@@ -253,6 +253,7 @@ sensible-utils \
 shellcheck \
 shfmt \
 slurp \
+smartmontools \
 swayidle \
 tar \
 tealdeer \
@@ -308,8 +309,9 @@ catfish \
 pavucontrol-qt \
 pavucontrol-qt-l10n \
 pulsemixer \
+cmus \
+quodlibet \
 ods2tsv"
-  # cmus ?
   # fontforge \
   # python3-fontforge"
   # wmctrl \
@@ -322,7 +324,6 @@ ods2tsv"
   # parted \
   # partitionmanager \
   # qpdf \
-  # quodlibet \
   # sxhkd \
   # synaptic \
   # syncthing \
@@ -357,6 +358,20 @@ config_libdvd() {
   [ "$answer" = 'n' ] && return
 
   sudo dpkg-reconfigure libdvd-pkg
+  check $?
+}
+
+install_extrepo() {
+  # https://linuxiac.com/how-to-use-extrepo-in-debian-to-manage-third-party-repositories/
+  
+  echo
+  printf '%sInstallation et configuration d’« extrepo », logiciel permettant d’ajouter de manière sûre des dépôts externes.%s ' "${bold}" "${reset}"
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  sudo apt install extrepo
+  sudo sed --in-place 's/^# - contrib/- contrib/' /etc/extrepo/config.yaml
+  sudo sed --in-place 's/^# - non-free/- non-free/' /etc/extrepo/config.yaml
   check $?
 }
 
@@ -616,13 +631,14 @@ install_vscodium() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
-    | gpg --dearmor \
-    | sudo dd of=/usr/share/keyrings/vscodium-archive-keyring.gpg
+  # wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
+  #   | gpg --dearmor \
+  #   | sudo dd of=/usr/share/keyrings/vscodium-archive-keyring.gpg
 
-  echo 'deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/vscodium-archive-keyring.gpg] https://download.vscodium.com/debs vscodium main' \
-    | sudo tee /etc/apt/sources.list.d/vscodium.list
+  # echo 'deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/vscodium-archive-keyring.gpg] https://download.vscodium.com/debs vscodium main' \
+  #   | sudo tee /etc/apt/sources.list.d/vscodium.list
 
+  sudo extrepo enable vscodium
   sudo apt update && sudo apt install codium
   check $?
 }
@@ -777,11 +793,13 @@ install_signal() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  wget -O- https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor > signal-desktop-keyring.gpg
-  # shellcheck disable=SC2002 # Je prends cette ligne du site web: https://signal.org/fr/download/linux/.
-  cat signal-desktop-keyring.gpg | sudo tee /usr/share/keyrings/signal-desktop-keyring.gpg > /dev/null
-  echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.gpg] https://updates.signal.org/desktop/apt xenial main' \
-    | sudo tee /etc/apt/sources.list.d/signal-xenial.list
+  # wget -O- https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor > signal-desktop-keyring.gpg
+  # # shellcheck disable=SC2002 # Je prends cette ligne du site web: https://signal.org/fr/download/linux/.
+  # cat signal-desktop-keyring.gpg | sudo tee /usr/share/keyrings/signal-desktop-keyring.gpg > /dev/null
+  # echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.gpg] https://updates.signal.org/desktop/apt xenial main' \
+  #   | sudo tee /etc/apt/sources.list.d/signal-xenial.list
+
+  sudo extrepo enable signal
   sudo apt update && sudo apt install signal-desktop
   check $?
 }

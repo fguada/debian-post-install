@@ -445,6 +445,7 @@ install_dra() {
   check $?
 }
 
+# https://github.com/jamielinux/bashmount/
 install_bashmount() {
   install_name bashmount
   read -r answer
@@ -458,6 +459,8 @@ install_bashmount() {
   check $?
 }
 
+# Disponible dans Debian à partir de Forky
+# https://github.com/sharkdp/pastel
 install_pastel() {
   install_name pastel
   read -r answer
@@ -469,6 +472,7 @@ install_pastel() {
   check $?
 }
 
+# https://github.com/arp242/uni
 install_uni() {
   install_name uni
   read -r answer
@@ -482,6 +486,7 @@ install_uni() {
   check $?
 }
 
+# https://github.com/ouch-org/ouch
 install_ouch() {
   install_name ouch
   read -r answer
@@ -497,19 +502,21 @@ install_ouch() {
   check $?
 }
 
-install_moar() {
-  install_name moar
+# https://github.com/walles/moor
+install_moor() {
+  install_name moor
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  dra download --select "moar-v{tag}-linux-amd64" walles/moar
-  sudo mv --force moar-*-*-* /usr/local/bin/moar
-  sudo chmod +x /usr/local/bin/moar
-  curl --remote-name https://raw.githubusercontent.com/walles/moar/refs/heads/master/moar.1
-  sudo mv --force ./moar.1 /usr/local/share/man/man1/
+  dra download --select "moor-v{tag}-linux-amd64" walles/moor
+  sudo mv --force moor-*-*-* /usr/local/bin/moor
+  sudo chmod +x /usr/local/bin/moor
+  curl --remote-name https://raw.githubusercontent.com/walles/moor/refs/heads/master/moor.1
+  sudo mv --force ./moor.1 /usr/local/share/man/man1/
   check $?
 }
 
+# https://github.com/printfn/fend
 install_fend() {
   install_name fend
   read -r answer
@@ -525,6 +532,7 @@ install_fend() {
   check $?
 }
 
+# https://github.com/sharkdp/diskus
 install_diskus() {
   install_name diskus
   read -r answer
@@ -536,6 +544,7 @@ install_diskus() {
   check $?
 }
 
+# https://github.com/flacon/flacon
 install_flacon() {
   install_name flacon
   read -r answer
@@ -548,6 +557,7 @@ install_flacon() {
   check $?
 }
 
+# https://github.com/jarun/advcpmv
 install_advcpmv() {
   echo
   printf '%sInstallation de advcpmv%s (peut prendre quelques minutes). ' "${bold}" "${reset}"
@@ -569,6 +579,7 @@ install_advcpmv() {
   check $?
 }
 
+# https://github.com/laurent22/massren
 install_massren() {
   install_name massren
   read -r answer
@@ -583,6 +594,7 @@ install_massren() {
   check $?
 }
 
+# https://github.com/sentriz/cliphist
 # J'ai besoin d'une version >= 0.6, or au 14/03/2025, debian testing n'a encore que 0.5.
 # Pas de bogue si j'utilise une version < 0.6, l'option de contrôle de la longueur des lignes de prévisualisation est simplement ignorée.
 install_cliphist() {
@@ -599,6 +611,7 @@ install_cliphist() {
   check $?
 }
 
+# https://github.com/MaxVerevkin/wl-gammarelay-rs
 install_wl_gammarelay_rs() {
   echo
   printf '%sInstallation de wl-gammarelay-rs%s (peut prendre quelques minutes). ' "${bold}" "${reset}"
@@ -615,6 +628,7 @@ install_wl_gammarelay_rs() {
   check $?
 }
 
+# https://vscodium.com/
 install_vscodium() {
   install_name VSCodium
   read -r answer
@@ -632,6 +646,7 @@ install_vscodium() {
   check $?
 }
 
+# https://github.com/electrickite/batsignal/
 install_batsignal() {
   install_name batsignal
   read -r answer
@@ -709,6 +724,7 @@ install_hyprpicker() {
   check $?
 }
 
+# https://github.com/cytopia/linux-timemachine
 install_timemachine() {
   install_name timemachine
   read -r answer
@@ -720,6 +736,7 @@ install_timemachine() {
   check $?
 }
 
+# https://github.com/meersjo/toolkit/blob/master/various/datedirclean.sh
 install_datedirclean() {
   install_name datedirclean.sh
   read -r answer
@@ -731,6 +748,7 @@ install_datedirclean() {
   check $?
 }
 
+# https://github.com/labwc/labwc-gtktheme
 install_labwc_gtktheme() {
   install_name labwc-gtktheme
   read -r answer
@@ -756,6 +774,7 @@ install_labwc_gtktheme() {
   check $?
 }
 
+# https://brew.sh/
 install_homebrew() {
   install_name homebrew
   read -r answer
@@ -765,6 +784,7 @@ install_homebrew() {
   check $?
 }
 
+# https://eid.belgium.be/fr/installation-du-logiciel-eid-sous-linux
 install_eid_belgium() {
   install_name 'eID Belgium'
   read -r answer
@@ -777,6 +797,7 @@ install_eid_belgium() {
   check $?
 }
 
+# https://signal.org/
 install_signal() {
   install_name 'Signal Desktop'
   read -r answer
@@ -1551,7 +1572,7 @@ install_bashmount
 install_pastel
 install_uni
 install_ouch
-install_moar
+install_moor
 install_fend
 install_diskus
 # install_flacon

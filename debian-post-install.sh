@@ -67,26 +67,26 @@ activate_tty2() {
   check $?
 }
 
-backup_apt_sourceslist() {
+backup_apt_sources() {
   # Si la copie existe déjà, on ne l'écrase pas.
-  if ! [ -e /etc/apt/sources.list.bak ]; then
+  if ! [ -e /etc/apt/sources.list.d/debian.sources.bak ]; then
     echo
-    printf '%sCréation d’une copie de sauvegarde du fichier « /etc/apt/sources.list ».%s ' "${bold}" "${reset}"
+    printf '%sCréation d’une copie de sauvegarde du fichier « /etc/apt/sources.list.d/debian.sources ».%s ' "${bold}" "${reset}"
     read -r answer
     [ "$answer" = 'n' ] && return
 
-    sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+    sudo cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak
     check $?
   fi
 }
 
-config_apt_sourceslist() {
+config_apt_sources() {
   echo
-  printf '%sAjout des composants « contrib » et « non-free » au fichier « /etc/apt/sources.list ».%s ' "${bold}" "${reset}"
+  printf '%sAjout des composants « contrib » et « non-free » au fichier « /etc/apt/sources.list.d/debian.sources ».%s ' "${bold}" "${reset}"
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  sudo sed --in-place 's/main non-free-firmware$/main non-free-firmware contrib non-free/g' /etc/apt/sources.list
+  sudo sed --in-place 's/main non-free-firmware$/main non-free-firmware contrib non-free/g' /etc/apt/sources.list.d/debian.sources
   check $?
 }
 
@@ -124,8 +124,6 @@ arj \
 atool \
 bash-completion \
 bat \
-bc \
-bfs \
 blueman \
 bluez \
 bluez-tools \
@@ -174,6 +172,7 @@ gh \
 gnome-characters \
 gnome-epub-thumbnailer \
 golang \
+goldendict \
 gparted \
 grim \
 gucharmap \
@@ -309,9 +308,11 @@ catfish \
 pavucontrol-qt \
 pavucontrol-qt-l10n \
 pulsemixer \
-cmus \
 quodlibet \
 ods2tsv"
+# cmus \
+  # bc \
+  # bfs \
   # fontforge \
   # python3-fontforge"
   # wmctrl \
@@ -643,6 +644,16 @@ install_vscodium() {
 
   sudo extrepo enable vscodium
   sudo apt update && sudo apt install codium
+  check $?
+}
+
+install_tor() {
+  install_name Tor
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+  sudo extrepo enable torproject
+  sudo apt update && sudo apt install tor torbrowser-launcher
   check $?
 }
 
@@ -1553,8 +1564,8 @@ echo "Pressez « ${bold}entrée${reset} » pour confirmer chaque étape, « $
 
 config_console
 activate_tty2
-backup_apt_sourceslist
-config_apt_sourceslist
+backup_apt_sources
+config_apt_sources
 update_apt
 upgrade_apt
 install_cutom_pkgs
@@ -1581,6 +1592,7 @@ install_massren
 install_cliphist
 install_wl_gammarelay_rs
 install_vscodium
+install_tor
 install_batsignal
 install_hyprpicker
 install_timemachine

@@ -388,7 +388,7 @@ $HOME/Projets
 $HOME/bin
 $HOME/.local/bin
 $HOME/.local/share
-$HOME/.local/state
+$HOME/.local/state/bash
 $HOME/.config
 $HOME/.cache/fg"
 

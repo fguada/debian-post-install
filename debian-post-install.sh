@@ -90,6 +90,22 @@ config_apt_sources() {
   check $?
 }
 
+add_apt_backports() {
+  echo
+  printf '%sAjout de la suite debian-backports.%s ' "${bold}" "${reset}"
+  read -r answer
+  [ "$answer" = 'n' ] && return
+
+echo "Types: deb deb-src
+URIs: http://deb.debian.org/debian
+Suites: $(lsb_release --codename --short)-backports
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+Enabled: yes" | sudo tee /etc/apt/sources.list.d/debian-backports.sources
+
+  check $?
+}
+
 update_apt() {
   echo
   printf '%sMise à jour de la liste des paquets.%s ' "${bold}" "${reset}"
@@ -1569,6 +1585,7 @@ config_console
 activate_tty2
 backup_apt_sources
 config_apt_sources
+add_apt_backports
 update_apt
 upgrade_apt
 install_cutom_pkgs

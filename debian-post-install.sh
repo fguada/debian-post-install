@@ -168,6 +168,7 @@ foot \
 fzf \
 galternatives \
 gcal \
+gdisk \
 gh \
 gnome-characters \
 gnome-epub-thumbnailer \
@@ -187,6 +188,7 @@ hyphen-fr \
 imagemagick \
 info \
 inxi \
+jmtpfs \
 jekyll \
 jq \
 kanshi \

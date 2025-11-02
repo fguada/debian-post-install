@@ -253,6 +253,7 @@ shellcheck \
 shfmt \
 slurp \
 smartmontools \
+soundconverter \
 swayidle \
 tar \
 tealdeer \

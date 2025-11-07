@@ -96,7 +96,7 @@ add_apt_backports() {
   read -r answer
   [ "$answer" = 'n' ] && return
 
-echo "Types: deb deb-src
+  echo "Types: deb deb-src
 URIs: http://deb.debian.org/debian
 Suites: $(lsb_release --codename --short)-backports
 Components: main contrib non-free non-free-firmware
@@ -127,244 +127,16 @@ upgrade_apt() {
 }
 
 install_cutom_pkgs() {
+  # On installe les paquets non commentés spécifiés dans ce fichier, situé dans le même répertoire que notre script.
+  list="$(dirname "$(realpath "$0")")/packages.txt"
   echo
   printf '%sInstallation d’un choix personnel de paquets.%s ' "${bold}" "${reset}"
+  echo
+  printf 'Pour consulter ou modifier la liste, voir le fichier « %s ».' "$list"
   read -r answer
   [ "$answer" = 'n' ] && return
 
-  pkgs="\
-alacritty \
-anacron \
-arc \
-arj \
-atool \
-bash-completion \
-bat \
-blueman \
-bluez \
-bluez-tools \
-brightnessctl \
-bsdutils \
-bzip2 \
-calibre \
-cargo \
-catdoc \
-chafa \
-chromium \
-chromium-l10n \
-clinfo \
-cliphist \
-cmake \
-colordiff \
-colortest-python \
-cpio \
-curl \
-dbus \
-dconf-editor \
-dex \
-dictionaries-common \
-diffutils \
-dmidecode \
-docx2txt \
-du-dust \
-duf \
-eject \
-e2fsprogs \
-exfatprogs \
-exif \
-libimage-exiftool-perl \
-eza \
-fastfetch \
-fd-find \
-fdisk \
-ffmpegthumbnailer \
-firefox-esr \
-firefox-esr-l10n-fr \
-foot \
-fzf \
-galternatives \
-gcal \
-gdisk \
-gh \
-gnome-characters \
-gnome-epub-thumbnailer \
-golang \
-goldendict \
-gparted \
-grim \
-gucharmap \
-gvfs \
-gvfs-backends \
-gvfs-fuse \
-gzip \
-htop \
-hunspell \
-hyperfine \
-hyphen-fr \
-imagemagick \
-info \
-inxi \
-jmtpfs \
-jekyll \
-jq \
-kanshi \
-keepassxc \
-kid3-qt \
-kitty \
-kitty-terminfo \
-labwc \
-lf \
-libcdio-utils \
-libcpanel-json-xs-perl \
-libdvd-pkg \
-libfuse2t64 \
-libglib2.0-bin \
-libnotify-bin \
-libnotify-dev \
-libpixman-1-dev \
-libreoffice-calc \
-libreoffice-grammalecte \
-libreoffice-help-fr \
-libreoffice-java-common \
-libreoffice-l10n-fr \
-libreoffice-qt6 \
-libreoffice-writer \
-libxml-dumper-perl \
-lxpolkit \
-lzip \
-lzop \
-mako-notifier \
-mediainfo \
-mesa-utils \
-meson \
-micro \
-mintstick \
-moreutils \
-mousepad \
-mpv \
-neovim \
-network-manager \
-nm-connection-editor \
-nomarch \
-pandoc \
-parallel \
-pdfarranger \
-plocate \
-poppler-utils \
-qbittorrent \
-qimgv \
-qt5ct \
-qt6ct \
-rar \
-rclone \
-regionset \
-rfkill \
-ripgrep \
-rpm \
-rsync \
-ruby-jekyll-paginate \
-ruby-jekyll-sitemap \
-screenruler \
-sd \
-sensible-utils \
-shellcheck \
-shfmt \
-slurp \
-smartmontools \
-soundconverter \
-swayidle \
-tar \
-tealdeer \
-thunar \
-thunar-archive-plugin \
-thunar-gtkhash \
-thunar-media-tags-plugin \
-thunar-volman \
-thunderbird \
-thunderbird-l10n-fr \
-timeshift \
-transmission-cli \
-trash-cli \
-tree \
-udisks2 \
-unace \
-unalz \
-unrar \
-upower \
-vainfo \
-virt-manager \
-vlc \
-vlc-plugin-pipewire \
-vulkan-tools \
-wayland-utils \
-wev \
-wdisplays \
-wget \
-wl-clipboard \
-wlopm \
-wlr-randr \
-wlrctl \
-xz-utils \
-yt-dlp \
-zathura \
-zathura-pdf-poppler \
-zathura-cb \
-zathura-djvu \
-zathura-ps \
-wayland-protocols \
-libwayland-client++1 \
-libxkbcommon-dev \
-libcairo2-dev \
-libpango1.0-dev \
-libpugixml-dev \
-libwayland-client-extra++1 \
-libwayland-dev
-pipewire-audio \
-wireplumber \
-xfce4-appfinder \
-odt2txt \
-catfish \
-pavucontrol-qt \
-pavucontrol-qt-l10n \
-pulsemixer \
-quodlibet \
-ods2tsv"
-# cmus \
-  # bc \
-  # bfs \
-  # fontforge \
-  # python3-fontforge"
-  # wmctrl \
-  # abcde \
-  # archivemount \
-  # atril \
-  # featherpad \
-  # network-manager-gnome \
-  # numlockx \
-  # parted \
-  # partitionmanager \
-  # qpdf \
-  # sxhkd \
-  # synaptic \
-  # syncthing \
-  # transmission-qt \
-  # xarchiver \
-  # xcalib \
-  # xcape \
-  # xclip \
-  # xdotool \
-  # xfce4 \
-  # xfce4-notifyd \
-  # xfce4-panel \
-  # xfce4-power-manager \
-  # xfce4-pulseaudio-plugin \
-  # xfce4-screenshooter \
-  # xfce4-session \
-  # xfce4-settings \
-  # xfce4-terminal \
-  # xfce4-xkb-plugin \
-  # xfconf \
-  # xfwm4 \
+  pkgs="$(grep --only-matching --extended-regexp '^\s*[a-z0-9.+-]+' "$list")"
 
   # shellcheck disable=SC2086 # On veut séparer les paquets.
   install $pkgs
@@ -383,7 +155,7 @@ config_libdvd() {
 
 install_extrepo() {
   # https://linuxiac.com/how-to-use-extrepo-in-debian-to-manage-third-party-repositories/
-  
+
   echo
   printf '%sInstallation et configuration d’« extrepo », logiciel permettant d’ajouter de manière sûre des dépôts externes.%s ' "${bold}" "${reset}"
   read -r answer

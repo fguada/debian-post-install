@@ -1,0 +1,236 @@
+# This file list all packages that should be installed via apt.
+# Lines and string starting with a # are ignored, so it's easy to choose what to install, eventually in another tty.
+
+alacritty
+anacron
+arc
+arj
+atool
+bash-completion
+bat
+blueman
+bluez
+bluez-tools
+brightnessctl
+bsdutils
+bzip2
+calibre
+cargo
+catdoc
+catfish
+chafa
+chromium
+chromium-l10n
+clinfo
+cliphist
+cmake
+colordiff
+colortest-python
+cpio
+curl
+dbus
+dconf-editor
+dex
+dictionaries-common
+diffutils
+dmidecode
+docx2txt
+du-dust # better du
+duf # better df
+e2fsprogs
+eject
+exfatprogs
+exif
+eza # better ls
+fastfetch # better neofetch
+fd-find # better find
+fdisk
+ffmpegthumbnailer
+firefox-esr
+firefox-esr-l10n-fr
+foot
+fzf
+#galternatives
+gcal
+#gdisk
+#gh
+gnome-characters
+gnome-epub-thumbnailer
+golang
+#goldendict
+gparted
+grim # pour les copies d'écran
+gucharmap # plus complet que gnome-characters
+gvfs
+gvfs-backends
+gvfs-fuse
+gzip
+htop
+hunspell
+hyperfine # mesurer la vitesse d'exécution d'une commande
+hyphen-fr
+imagemagick
+info
+inxi
+jekyll
+jmtpfs # pour monter de manière fiable mon smartphone via mtp
+jq
+kanshi # gestion des écrans sous wayland
+keepassxc
+kid3-qt # éditeur de métadonnées de fichiers audio
+kitty
+kitty-terminfo
+labwc
+lf # gestionnaire de fichier en TUI
+libcairo2-dev
+libcdio-utils
+libcpanel-json-xs-perl
+libdvd-pkg # pour lire des DVD protégés (légal)
+libfuse2t64
+libglib2.0-bin
+libimage-exiftool-perl
+libnotify-bin
+libnotify-dev
+libpango1.0-dev
+libpixman-1-dev
+libpugixml-dev
+libreoffice-calc
+libreoffice-grammalecte
+libreoffice-help-fr
+libreoffice-java-common
+libreoffice-l10n-fr
+libreoffice-qt6
+libreoffice-writer
+libwayland-client-extra++1
+libwayland-client++1
+libwayland-dev
+libxkbcommon-dev
+libxml-dumper-perl
+lxpolkit # light polkit authenticator agent
+lzip
+lzop
+mako-notifier
+mc # gestionnaire de fichiers pour la console
+mediainfo
+mesa-utils
+meson
+micro # better nano
+mintstick
+moreutils # pour isutf8
+mousepad
+mpv
+neovim # to display manpages with an index
+network-manager
+nm-connection-editor
+nomarch
+ods2tsv
+odt2txt
+pandoc
+parallel # exécution de commandes en parallèle
+pavucontrol-qt
+pavucontrol-qt-l10n
+pdfarranger
+pipewire-audio
+plocate # faster locate
+poppler-utils # for pdf
+pulsemixer
+qbittorrent
+qimgv
+qt5ct
+qt6ct
+quodlibet
+rar
+rclone
+regionset # changer la région d'un DVD
+rfkill
+ripgrep # better grep
+rpm
+rsync
+ruby-jekyll-paginate
+ruby-jekyll-sitemap
+screenruler
+#sd
+sensible-utils
+shellcheck
+shfmt
+slurp # sélectionner une région sous wayland
+smartmontools
+soundconverter
+swayidle
+tar
+tealdeer # tldr client
+thunar
+thunar-archive-plugin
+thunar-gtkhash
+thunar-media-tags-plugin
+thunar-volman
+thunderbird
+thunderbird-l10n-fr
+timeshift
+transmission-cli
+trash-cli
+tree
+udisks2
+unace
+unalz
+unrar
+upower
+vainfo
+#virt-manager
+vlc
+vlc-plugin-pipewire
+vulkan-tools
+wayland-protocols
+wayland-utils
+wdisplays
+wev # xev pour wayland
+wget
+wireplumber
+wl-clipboard
+wlopm
+wlr-randr
+wlrctl
+xfce4-appfinder
+xz-utils
+yt-dlp
+zathura
+zathura-cb
+zathura-djvu
+zathura-pdf-poppler
+zathura-ps
+# abcde
+# archivemount
+# atril
+# bc
+# bfs
+# cmus
+# featherpad
+# fontforge
+# network-manager-gnome
+# numlockx
+# parted
+# partitionmanager
+# python3-fontforge
+# qpdf
+# sxhkd
+# synaptic
+# syncthing
+# transmission-qt
+# wmctrl
+# xarchiver
+# xcalib
+# xcape
+# xclip
+# xdotool
+# xfce4
+# xfce4-notifyd
+# xfce4-panel
+# xfce4-power-manager
+# xfce4-pulseaudio-plugin
+# xfce4-screenshooter
+# xfce4-session
+# xfce4-settings
+# xfce4-terminal
+# xfce4-xkb-plugin
+# xfconf
+# xfwm4

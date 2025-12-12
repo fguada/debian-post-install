@@ -3,6 +3,7 @@
 
 alacritty
 anacron
+apkinfo
 arc
 arj
 atool
@@ -71,6 +72,7 @@ hyperfine # mesurer la vitesse d'exécution d'une commande
 hyphen-fr
 imagemagick
 info
+# inotify-tools # pour inotifywait
 inxi
 jekyll
 jmtpfs # pour monter de manière fiable mon smartphone via mtp
@@ -119,7 +121,7 @@ mintstick
 moreutils # pour isutf8
 mousepad
 mpv
-neovim # to display manpages with an index
+# neovim # to display manpages with an index
 network-manager
 nm-connection-editor
 nomarch
@@ -133,6 +135,7 @@ pdfarranger
 pipewire-audio
 plocate # faster locate
 poppler-utils # for pdf
+progress # afficher la progression d'une commande (cp, mv, etc.) soit en arrière-plan soit d'un autre terminal
 pulsemixer
 qbittorrent
 qimgv
@@ -142,14 +145,14 @@ quodlibet
 rar
 rclone
 regionset # changer la région d'un DVD
-rfkill
+rfkill # commuter bluetooth ou wifi
 ripgrep # better grep
 rpm
 rsync
 ruby-jekyll-paginate
 ruby-jekyll-sitemap
 screenruler
-#sd
+#sd # très pratique - mais abandonné?
 sensible-utils
 shellcheck
 shfmt
@@ -181,6 +184,7 @@ vlc
 vlc-plugin-pipewire
 vulkan-tools
 wayland-protocols
+wayland-scanner++
 wayland-utils
 wdisplays
 wev # xev pour wayland
@@ -190,8 +194,11 @@ wl-clipboard
 wlopm
 wlr-randr
 wlrctl
+# wtype
 xfce4-appfinder
+xdg-terminals-exec # configuration du terminal par défaut: https://github.com/Vladimir-csp/xdg-terminal-exec
 xz-utils
+# ydotool # peut être remplacé par https://git.sr.ht/~geb/dotool, qui n'est pas dans debian
 yt-dlp
 zathura
 zathura-cb

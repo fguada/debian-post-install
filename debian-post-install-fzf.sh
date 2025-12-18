@@ -1144,7 +1144,7 @@ fgdo_show_what_to_do_manually() { # Montrer ce qui reste à faire manuellement
   - git clone git@github.com:fguada/debian-post-install.git
   - git clone git@github.com:fguada/fguada.github.io.git
 
-- Si l’installation a été faite en Wi-Fi, il est possible que ce soit dhcpcd qui prenne en charge les connexions Wi-Fi et non Network Manager, ce qui empêche de se connecter facilement à de nouveaux réseaux. Solution: supprimer toutes les autres interfaces que « lo » dans le fichier « /etc/network/interfaces », puis redémarrer.
+- Si l’installation a été faite en Wi-Fi, il est possible que ce soit dhcpcd qui prenne en charge les connexions Wi-Fi et non Network Manager, ce qui empêche de se connecter facilement à de nouveaux réseaux. Solution: supprimer toutes les autres interfaces que « lo » dans le fichier « /etc/network/interfaces », ou remplacer managed=false par managed=true sous la rubrique [ifupdown] dans /etc/NetworkManager/NetworkManager.conf, puis redémarrer.
 
 - Installer les dernières versions des paquets ci-dessous pour utiliser le thème Mint-Y-Purple.
   mint-x-icons_*.*.*_all.deb # http://packages.linuxmint.com/pool/main/m/mint-x-icons/

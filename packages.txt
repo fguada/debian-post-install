@@ -23,15 +23,15 @@ chafa
 chromium
 chromium-l10n
 clinfo
-cliphist
+# cliphist
 cmake
-colordiff
-colortest-python
+# colordiff
+# colortest-python
 cpio
 curl
 dbus
-dconf-editor
-dex
+# dconf-editor
+# dex
 dictionaries-common
 diffutils
 dmidecode
@@ -84,18 +84,18 @@ kitty
 kitty-terminfo
 labwc
 lf # gestionnaire de fichier en TUI
-libcairo2-dev
-libcdio-utils
-libcpanel-json-xs-perl
+# libcairo2-dev
+# libcdio-utils
+# libcpanel-json-xs-perl
 libdvd-pkg # pour lire des DVD protégés (légal)
-libfuse2t64
-libglib2.0-bin
-libimage-exiftool-perl
-libnotify-bin
-libnotify-dev
-libpango1.0-dev
-libpixman-1-dev
-libpugixml-dev
+# libfuse2t64
+# libglib2.0-bin
+# libimage-exiftool-perl
+# libnotify-bin
+# libnotify-dev
+# libpango1.0-dev
+# libpixman-1-dev
+# libpugixml-dev
 libreoffice-calc
 libreoffice-grammalecte
 libreoffice-help-fr
@@ -103,16 +103,16 @@ libreoffice-java-common
 libreoffice-l10n-fr
 libreoffice-qt6
 libreoffice-writer
-libwayland-client-extra++1
-libwayland-client++1
-libwayland-dev
-libxkbcommon-dev
-libxml-dumper-perl
+# libwayland-client-extra++1
+# libwayland-client++1
+# libwayland-dev
+# libxkbcommon-dev
+# libxml-dumper-perl
 lxpolkit # light polkit authenticator agent
 lzip
 lzop
 mako-notifier
-mc # gestionnaire de fichiers pour la console
+# mc # gestionnaire de fichiers pour la console
 mediainfo
 mesa-utils
 meson
@@ -132,10 +132,10 @@ parallel # exécution de commandes en parallèle
 pavucontrol-qt
 pavucontrol-qt-l10n
 pdfarranger
-pipewire-audio
+# pipewire-audio
 plocate # faster locate
 poppler-utils # for pdf
-progress # afficher la progression d'une commande (cp, mv, etc.) soit en arrière-plan soit d'un autre terminal
+# progress # afficher la progression d'une commande (cp, mv, etc.) soit en arrière-plan soit d'un autre terminal
 pulsemixer
 qbittorrent
 qimgv
@@ -144,7 +144,7 @@ qt6ct
 quodlibet
 rar
 rclone
-regionset # changer la région d'un DVD
+# regionset # changer la région d'un DVD
 rfkill # commuter bluetooth ou wifi
 ripgrep # better grep
 rpm
@@ -153,7 +153,7 @@ ruby-jekyll-paginate
 ruby-jekyll-sitemap
 screenruler
 #sd # très pratique - mais abandonné?
-sensible-utils
+# sensible-utils
 shellcheck
 shfmt
 slurp # sélectionner une région sous wayland
@@ -196,7 +196,7 @@ wlr-randr
 wlrctl
 # wtype
 xfce4-appfinder
-xdg-terminals-exec # configuration du terminal par défaut: https://github.com/Vladimir-csp/xdg-terminal-exec
+# xdg-terminals-exec # configuration du terminal par défaut: https://github.com/Vladimir-csp/xdg-terminal-exec
 xz-utils
 # ydotool # peut être remplacé par https://git.sr.ht/~geb/dotool, qui n'est pas dans debian
 yt-dlp

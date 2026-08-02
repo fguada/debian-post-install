@@ -278,6 +278,7 @@ fgdo_install_ouch() { # Installer ouch
 }
 
 # https://github.com/walles/moor
+# Dans Debian à partir de Forky.
 fgdo_install_moor() { # Installer moor
   install_name moor || return
   dra download --select "moor-v{tag}-linux-amd64" walles/moor
@@ -302,6 +303,7 @@ fgdo_install_fend() { # Installer fend
 }
 
 # https://github.com/sharkdp/diskus
+# Dans Debian à partir de Forky.
 fgdo_install_diskus() { # Installer diskus
   install_name diskus || return
   dra download --select "diskus_{tag}_amd64.deb" sharkdp/diskus
@@ -400,25 +402,7 @@ fgdo_install_dotool() { # Installer dotool
   sudo usermod -a -G input "$USER"
 }
 
-# https://github.com/electrickite/batsignal/
-fgdo_install_batsignal() { # Installer batsignal
-  install_name batsignal || return
-  cd "$HOME/Projets" || exit 1
-
-  if [ -d "./batsignal" ]; then
-    cd ./batsignal || exit 1
-    git pull
-  else
-    git clone https://github.com/electrickite/batsignal
-    cd ./batsignal || exit 1
-  fi
-
-  make && sudo make install
-  check $?
-}
-
-# J'ai besoin d'une version de wl-clipboard postérieure à ce commit: https://github.com/bugaevc/wl-clipboard/commit/1e50b65d5ef94d2e595cfaf30a81f933ba80b1f9, daté du 24 mars 2025. Or aucune nouvelle version n'a été publiée depuis 2023.
-# Ce commit permet à `wl-paste --watch` d'ignorer les mots de passe copiés dans keepassxc.
+# J'ai besoin de la version 2.3 au moins, seulement disponible dans Forky.
 fgdo_install_wl_clipboard() { # Installer wl_clipboard
   install_name wl-clipboard || return
   cd "$HOME/Projets" || exit 1
@@ -499,15 +483,6 @@ fgdo_install_timemachine() { # Installer timemachine
   curl --remote-name https://raw.githubusercontent.com/cytopia/linux-timemachine/refs/heads/master/timemachine
   chmod +x ./timemachine
   sudo mv --force ./timemachine /usr/local/bin/
-  check $?
-}
-
-# https://github.com/meersjo/toolkit/blob/master/various/datedirclean.sh
-fgdo_install_datedirclean() { # Installer datedirclean
-  install_name datedirclean.sh || return
-  curl --remote-name https://raw.githubusercontent.com/meersjo/toolkit/refs/heads/master/various/datedirclean.sh
-  chmod +x ./datedirclean.sh
-  sudo mv --force ./datedirclean.sh /usr/local/bin/
   check $?
 }
 
@@ -879,7 +854,7 @@ fgdo_config_xfce_panel() { # Configurer le panneau de Xfce
 
 }
 
-fgdo_config_xfce_session() { # Configurer la sessions de Xfce
+fgdo_config_xfce_session() { # Configurer la session de Xfce
   has xfce4-session || return
   ask 'Configuration de xfce4-session.' || return
   # Désactiver le lancement automatique de gpg et ssh.
@@ -888,7 +863,7 @@ fgdo_config_xfce_session() { # Configurer la sessions de Xfce
   check $?
 }
 
-fgdo_config_documents_hourly_backup() { # Configurer une sauvegarde horaire des documents
+fgdo_config_documents_hourly_backup() { # Configurer une sauvegarde horaire locale des documents
   has timemachine \
     && has datedirclean.sh \
     && has sauvegarde_locale_timemachine_Documents.sh || return
@@ -903,15 +878,7 @@ fgdo_config_documents_hourly_backup() { # Configurer une sauvegarde horaire des 
   # Ajustement des permissions dudit répertoire.
   sudo chmod 700 "/home/sauvegardes/$USER"
 
-  # Paramétrage de la fréquence de la sauvegarde.
-  echo "@hourly $(which sauvegarde_locale_timemachine_Documents.sh)" | crontab -
-
-  # Paramétrage de la suppression automatique des sauvegardes les plus anciennes.
-  echo "
-# FG
-# tous les 7 jours, suppression des anciennes sauvegardes locales effectuées chaque heure avec linux-timemachine via cron
-7 15 fg-suppression-des-anciennes-sauvegardes-locales	$(which datedirclean.sh) /home/sauvegardes/$USER/Documents" \
-    | sudo tee --append /etc/anacrontab
+  # Sauvegarde et nettoyage sont effectués respectivement par un timer de systemd et une commande dans mon fichier de lancement de session graphique.
 
   check $?
 }
@@ -950,169 +917,12 @@ ExecStart=-/sbin/agetty --issue-file /etc/issuefg -o '-p -- $USER' --noclear --s
   check $?
 }
 
-fgdo_config_shell_options_and_aliases() { # Configurer les options et alias du shell
-  ask 'Configuration des options et alias par défaut du shell.' || return
-  # shellcheck disable=SC2016
-  echo '
-######
-# FG #
-######
-
-######################
-# ALIAS ET FONCTIONS #
-######################
-
-# toujours afficher la liste des fichiers avec 1 élément par lignes sauf . et ..
-alias ls="ls --group-directories-first --human-readable --classify -l --color=auto --time-style=+\"%Y-%m-%d %H:%M:%S\""
-
-# toujours afficher la liste des fichiers avec 1 élément par lignes, les éléments invisibles sauf . et .. ; mnémonique: "ls all"
-alias lsa="ls --group-directories-first --human-readable --classify -l --color=auto --time-style=+\"%Y-%m-%d %H:%M:%S\" --almost-all"
-
-alias ..="cd .."         # Go up one directory
-alias cd..="cd .."       # Common misspelling for going up one directory
-alias ...="cd ../.."     # Go up two directories
-alias ....="cd ../../.." # Go up three directories
-
-# settings that you pretty much just always are going to want
-alias \
-  rm="rm --interactive=once --force --verbose --recursive --one-file-system" \
-  bc="bc --quiet" \
-  mkdir="mkdir --parents --verbose"
-
-# Une version de cp conforme à mon habitude des gestionnaires de fichiers graphiques: une barre de progression pour les opérations lentes, et une adaptation des propriétés des fichiers copiés au dossier dans lequel ils l’ont été (par défaut cp copie les propriétés de la source).
-if command -v cpg >/dev/null; then
-  alias cp="cpg --strip-trailing-slashes --reflink=auto --recursive --no-preserve=mode,ownership --progress-bar"
-fi
-
-if command -v mvg >/dev/null; then
-  alias mv="mvg --strip-trailing-slashes --progress-bar"
-fi
-
-if command -v lf >/dev/null 2>/dev/null; then	
-  l() {
-  	cd "$(lf -print-last-dir "$@")" || return
-  }
-fi
-
-# df pour les humains!
-alias df="df --local --human-readable --exclude-type=tmpfs --exclude-type=devtmpfs --exclude-type=efivarfs --output=target,size,used,avail,pcent,fstype,source"
-
-if command -v duf >/dev/null 2>/dev/null; then
-  # afficher la taille et l’espace libre des volumes; alternative plus jolie à df
-  alias duf="duf --only local"
-fi
-
-if command -v dust >/dev/null 2>/dev/null; then
-  # afficher les dossiers triés par taille; alternative plus jolie à du (à partir de trixie)
-  alias dust="dust --limit-filesystem"
-fi
-
-du() {
-  if command -v diskus >/dev/null 2>/dev/null; then
-    # Affichage identique à du -sh ci-dessous, mais plus rapide car parallélisé.
-    diskus # https://github.com/sharkdp/diskus
-  else
-    du --summarize --human-readable --one-file-system
-  fi
-}
-
-###########
-# CLAVIER #
-###########
-
-# faire en sorte que ctrl+backspace efface le mot précédent
-stty werase "^H"
-
-##########################################
-# OPTIONS SPÉCIFIQUES À BASH #
-##########################################
-
-## GENERAL OPTIONS ##
-## https://github.com/mrzool/bash-sensible/blob/master/sensible.bash
-
-# Prevent file overwrite on stdout redirection
-# Use `>|` to force redirection to an existing file
-set -o noclobber
-
-# Update window size after every command:
-# check the window size after each command and, if necessary,
-# update the values of LINES and COLUMNS.
-shopt -s checkwinsize
-
-# Turn on recursive globbing (enables ** to recurse all directories)
-# If set, the pattern "**" used in a pathname expansion context will
-# match all files and zero or more directories and subdirectories.
-shopt -s globstar 2>/dev/null
-
-# Case-insensitive globbing (used in pathname expansion)
-shopt -s nocaseglob
-
-## SANE HISTORY DEFAULTS ##
-
-# Append to the history file, don’t overwrite it
-shopt -s histappend
-
-# Save multi-line commands as one command
-shopt -s cmdhist
-
-# After each command, append to the history file and reread it
-export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
-
-# Huge history. Doesn’t appear to slow things down, so why not?
-HISTSIZE=5000
-HISTFILESIZE=10000
-
-# Don’t record some commands
-export HISTIGNORE="&:[ ]*:exit:cd*:ls:bg:fg:history:clear:hs:*.sh:bm:bp:lsa:..:...:...."
-
-# Use standard ISO 8601 timestamp
-# %F equivalent to %Y-%m-%d
-# %T equivalent to %H:%M:%S (24-hours format)
-HISTTIMEFORMAT="%F %T "
-
-## BETTER DIRECTORY NAVIGATION ##
-
-# Prepend cd to directory names automatically
-shopt -s autocd
-# Correct spelling errors during tab-completion
-shopt -s dirspell
-# Correct spelling errors in arguments supplied to cd
-shopt -s cdspell
-' \
-    | sudo tee --append '/etc/skel/.bashrc'
-
-  if [ -f "$XDG_CONFIG_HOME/readline/inputrc" ]; then
-    sudo cp --force "$XDG_CONFIG_HOME/readline/inputrc" /etc/skel/.inputrc
-  fi
-
-  # Copie des fichiers par défaut dans les répertoires home des utilisateurs.
-  sudo cp --force --recursive /etc/skel/. /root/
-
-  if [ -d /home/toto ]; then
-    sudo cp --force --recursive /etc/skel/. /home/toto/
-  fi
-
-  check $?
-}
-
 fgdo_create_dollar_script() { # Créer le script $
   ask 'Créer dans /usr/local/bin un script permettant d’exécuter une ligne commençant par un dollar.' || return
   printf '#!/bin/sh\neval "$*"' | sudo tee /usr/local/bin/$
   sudo chmod +x /usr/local/bin/$
   check $?
 }
-
-# 2025-11-29: ces fichiers sont désormais copiés de ma sauvegarde par la fonction copy_data.
-# fgdo_forward_journald_to_tty12() { # Envoyer journald sur la tty12
-#   # Cf. https://wiki.archlinux.org/title/Systemd/Journal#Forward_journald_to_/dev/tty12.
-#   ask 'Affichage de journald sur la tty12.' || return
-#   sudo mkdir --parents /etc/systemd/journald.conf.d
-#   echo '[Journal]
-# ForwardToConsole=yes
-# TTYPath=/dev/tty12' | sudo tee /etc/systemd/journald.conf.d/90-fg-override-journald.conf
-#   sudo systemctl restart systemd-journald.service
-#   check $?
-# }
 
 fgdo_build_bat_cache() { # Construire le cache de bat
   # La construction du cache est nécessaire pour utiliser un thème personnalisé.

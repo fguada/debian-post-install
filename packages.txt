@@ -2,7 +2,7 @@
 # Lines and string starting with a # are ignored, so it's easy to choose what to install, eventually in another tty.
 
 alacritty
-anacron
+# anacron
 apkinfo
 arc
 arj

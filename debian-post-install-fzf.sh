@@ -217,16 +217,6 @@ fgdo_install_bashmount() { # Installer bashmount
   check $?
 }
 
-# Disponible dans Debian à partir de Forky
-# https://github.com/sharkdp/pastel
-fgdo_install_pastel() { # Installer pastel
-  install_name pastel || return
-  dra download --select "pastel_{tag}_amd64.deb" sharkdp/pastel
-  install ./pastel*.deb
-  rm ./pastel*.deb
-  check $?
-}
-
 # https://github.com/arp242/uni
 fgdo_install_uni() { # Installer uni
   install_name uni || return
@@ -277,18 +267,6 @@ fgdo_install_ouch() { # Installer ouch
   check $?
 }
 
-# https://github.com/walles/moor
-# Dans Debian à partir de Forky.
-fgdo_install_moor() { # Installer moor
-  install_name moor || return
-  dra download --select "moor-v{tag}-linux-amd64" walles/moor
-  sudo mv --force moor-*-*-* /usr/local/bin/moor
-  sudo chmod +x /usr/local/bin/moor
-  curl --remote-name https://raw.githubusercontent.com/walles/moor/refs/heads/master/moor.1
-  sudo mv --force ./moor.1 /usr/local/share/man/man1/
-  check $?
-}
-
 # https://github.com/printfn/fend
 fgdo_install_fend() { # Installer fend
   install_name fend || return
@@ -299,16 +277,6 @@ fgdo_install_fend() { # Installer fend
   dra download --select "fend.1" printfn/fend
   sudo mv --force ./fend.1 /usr/local/share/man/man1/
   rm ./fend-*
-  check $?
-}
-
-# https://github.com/sharkdp/diskus
-# Dans Debian à partir de Forky.
-fgdo_install_diskus() { # Installer diskus
-  install_name diskus || return
-  dra download --select "diskus_{tag}_amd64.deb" sharkdp/diskus
-  install ./diskus*.deb
-  sudo rm ./diskus*.deb
   check $?
 }
 
@@ -325,15 +293,10 @@ fgdo_install_flacon() { # Installer flacon
 # https://github.com/jarun/advcpmv
 fgdo_install_advcpmv() { # Installer advcpmv
   ask 'Installation de advcpmv (peut prendre quelques minutes). ' || return
+  sudo apt-get install make gcc patch texinfo
+  mkdir "$HOME/Projets"
   cd "$HOME/Projets" || exit 1
-
-  if [ -e "./advcpmv/install.sh" ]; then
-    cd ./advcpmv || exit 1
-    sh ./install.sh
-  else
-    curl https://raw.githubusercontent.com/jarun/advcpmv/master/install.sh --create-dirs -o ./advcpmv/install.sh && (cd advcpmv && sh install.sh)
-  fi
-
+  curl https://raw.githubusercontent.com/jarun/advcpmv/master/install.sh --create-dirs --clobber -o ./advcpmv/install.sh && (cd advcpmv && sh install.sh)
   sudo mv --force "$HOME"/Projets/advcpmv/advcp /usr/local/bin/cpg
   sudo mv --force "$HOME"/Projets/advcpmv/advmv /usr/local/bin/mvg
   sudo chmod +x /usr/local/bin/cpg /usr/local/bin/mvg
@@ -346,17 +309,6 @@ fgdo_install_massren() { # Installer massren
   has go || install golang
   go install github.com/laurent22/massren@latest
   sudo cp --force "$GOPATH/bin/massren" /usr/local/bin/
-  check $?
-}
-
-# https://github.com/sentriz/cliphist
-# J'ai besoin d'une version >= 0.6, or au 14/03/2025, debian testing n'a encore que 0.5.
-# Pas de bogue si j'utilise une version < 0.6, l'option de contrôle de la longueur des lignes de prévisualisation est simplement ignorée.
-fgdo_install_cliphist() { # Installer cliphist
-  install_name cliphist || return
-  has go || install golang
-  go install go.senan.xyz/cliphist@latest
-  sudo cp --force "$GOPATH/bin/cliphist" /usr/local/bin/
   check $?
 }
 
@@ -402,81 +354,6 @@ fgdo_install_dotool() { # Installer dotool
   sudo usermod -a -G input "$USER"
 }
 
-# J'ai besoin de la version 2.3 au moins, seulement disponible dans Forky.
-fgdo_install_wl_clipboard() { # Installer wl_clipboard
-  install_name wl-clipboard || return
-  cd "$HOME/Projets" || exit 1
-
-  if [ -d "./wl-clipboard" ]; then
-    cd ./wl-clipboard || exit 1
-    git pull
-  else
-    git clone https://github.com/bugaevc/wl-clipboard.git
-    cd ./wl-clipboard || exit 1
-  fi
-
-  meson setup build
-  cd build || exit
-  ninja
-  sudo meson install
-  check $?
-}
-
-# Ces logiciels s'installent dans /usr et non dans /usr/local. Malheureusement leurs makefiles ne respectent pas l'argument `--prefix /usr/local` qui pourrait être passé à `cmake`.
-fgdo_install_hyprpicker() { # Installer hyperpicker
-  install_name hyprpicker || return
-  echo
-  printf '%sCompilation préalable de hyprutils.%s\n' "${bold}" "${reset}"
-  cd "$HOME/Projets" || exit 1
-
-  if [ -d "./hyprutils" ]; then
-    cd ./hyprutils || exit 1
-    git pull
-  else
-    git clone https://github.com/hyprwm/hyprutils.git
-    cd ./hyprutils || exit 1
-  fi
-
-  cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
-  cmake --build ./build --config Release --target all -j"$(nproc 2> /dev/null || getconf NPROCESSORS_CONF)"
-  sudo cmake --install build
-  check $?
-
-  echo
-  printf '%sCompilation préalable de hyprwayland-scanner.%s\n' "${bold}" "${reset}"
-  cd "$HOME/Projets" || exit 1
-
-  if [ -d "./hyprwayland-scanner" ]; then
-    cd ./hyprwayland-scanner || exit 1
-    git pull
-  else
-    git clone https://github.com/hyprwm/hyprwayland-scanner.git
-    cd ./hyprwayland-scanner || exit 1
-  fi
-
-  cmake -DCMAKE_INSTALL_PREFIX=/usr -B build
-  cmake --build build -j "$(nproc)"
-  sudo cmake --install build
-  check $?
-
-  echo
-  printf '%sCompilation de hyprpicker.%s\n' "${bold}" "${reset}"
-  cd "$HOME/Projets" || exit 1
-
-  if [ -d "./hyprpicker" ]; then
-    cd ./hyprpicker || exit 1
-    git pull
-  else
-    git clone https://github.com/hyprwm/hyprpicker.git
-    cd ./hyprpicker || exit 1
-  fi
-
-  cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
-  cmake --build ./build --config Release --target hyprpicker -j"$(nproc 2> /dev/null || getconf _NPROCESSORS_CONF)"
-  sudo cmake --install ./build
-  check $?
-}
-
 # https://github.com/cytopia/linux-timemachine
 fgdo_install_timemachine() { # Installer timemachine
   install_name timemachine || return
@@ -519,10 +396,8 @@ fgdo_install_homebrew() { # Installer homebrew
 # https://eid.belgium.be/fr/installation-du-logiciel-eid-sous-linux
 fgdo_install_eid_belgium() { # Installer eid_belgium
   install_name 'eID Belgium' || return
-  curl --remote-name https://eid.belgium.be/sites/default/files/software/eid-archive_latest.deb
-  install ./eid-archive_latest.deb
-  sudo apt update && install eid-viewer eid-mw
-  rm ./eid-archive_latest.deb
+  sudo extrepo enable belgium_eid
+  sudo apt update && sudo apt install eid-archive eid-mw eid-viewer beid-mozilla-extension beid-mozilla-webext
   check $?
 }
 
@@ -534,30 +409,12 @@ fgdo_install_signal() { # Installer signal
   check $?
 }
 
-fgdo_install_emailbook() { # Installer emailbook
-  has aerc || return
-  install_name 'emailbook (pour aerc)' || return
-  curl --remote-name https://git.sr.ht/~maxgyver83/emailbook/blob/main/emailbook
-  chmod +X ./emailbook
-  sudo mv ./emailbook /usr/local/bin/
-  check $?
-}
-
 fgdo_correct_perms() { # Corriger les permissions
   ask 'Correction des permissions des répertoires du système.' || return
   sudo chmod 755 /usr/local/bin/*
   sudo chown root:root /usr/local/bin/*
   check $?
 }
-
-# 2025-11-29: ces fichiers sont désormais copiés de ma sauvegarde par la fonction copy_data.
-# fgdo_config_logind() { # Configurer logind
-#   ask 'Configuration de « /etc/systemd/logind.conf ».' || return
-#   sudo sed --in-place 's/^#HandlePowerKey=.*/HandlePowerKey=ignore/' /etc/systemd/logind.conf
-#   sudo sed --in-place 's/^#IdleAction=.*/IdleAction=suspend/' /etc/systemd/logind.conf
-#   sudo sed --in-place 's/^#IdleActionSec=.*/IdleActionSec=4min/' /etc/systemd/logind.conf
-#   check $?
-# }
 
 fgdo_config_grub() { # Configurer grub
   ask 'Configuration de grub.' || return
@@ -646,16 +503,6 @@ fgdo_config_custom_desktop_files() { # Créer des fichiers .desktop personnalis�
     fi
   fi
 }
-
-# 2025-11-29: ces fichiers sont désormais copiés de ma sauvegarde par la fonction copy_data.
-# fgdo_decrease_systemd_timeout() { # Diminuer la longueur du compte à rebours de sortie de systemd
-#   ask 'Diminution drastique du temps d’attente qu’un job se termine à la déconnexion.' || return
-#   sudo mkdir --parents /etc/systemd/logind.conf.d/
-#   printf '# Fichier créé par le script %s.\n\nDefaultTimeoutStopSec=5s\nDefaultTimeoutAbortSec=10s' "$(basename "$0")" \
-#     | sudo tee /etc/systemd/logind.conf.d/timeoutstop.conf
-#   sudo systemctl daemon-reload
-#   check $?
-# }
 
 fgdo_copy_data() { # Copier les données
   ask 'Copie de données personnelles d’un périphérique de stockage externe.' || return
@@ -1005,7 +852,7 @@ grep -E --only-matching "^fgdo_.+${SEP}.+$" "$0" \
     --info inline-right \
     --bind "enter:become(printf '%s\n' {+1} > $tempfile)"
 
-test ! -s "$tempfile" && exit
+test ! -s "$tempfile" && exit 1
 
 # shellcheck disable=SC2013
 for function in $(cat "$tempfile"); do

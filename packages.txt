@@ -18,7 +18,7 @@ bzip2
 calibre
 cargo
 catdoc
-catfish
+# catfish
 chafa
 chromium
 chromium-l10n
@@ -34,6 +34,7 @@ dbus
 # dex
 dictionaries-common
 diffutils
+diskus
 dmidecode
 docx2txt
 du-dust # better du
@@ -70,6 +71,7 @@ htop
 hunspell
 hyperfine # mesurer la vitesse d'exécution d'une commande
 hyphen-fr
+# hyprpicker
 imagemagick
 info
 # inotify-tools # pour inotifywait
@@ -99,7 +101,7 @@ libdvd-pkg # pour lire des DVD protégés (légal)
 libreoffice-calc
 libreoffice-grammalecte
 libreoffice-help-fr
-libreoffice-java-common
+# libreoffice-java-common
 libreoffice-l10n-fr
 libreoffice-qt6
 libreoffice-writer
@@ -115,11 +117,13 @@ mako-notifier
 # mc # gestionnaire de fichiers pour la console
 mediainfo
 mesa-utils
+mesa-vulkan-drivers
 meson
 micro # better nano
 mintstick
+moor
 moreutils # pour isutf8
-mousepad
+# mousepad
 mpv
 # neovim # to display manpages with an index
 network-manager
@@ -129,6 +133,7 @@ ods2tsv
 odt2txt
 pandoc
 parallel # exécution de commandes en parallèle
+# pastel
 pavucontrol-qt
 pavucontrol-qt-l10n
 pdfarranger
@@ -136,7 +141,7 @@ pdfarranger
 plocate # faster locate
 poppler-utils # for pdf
 # progress # afficher la progression d'une commande (cp, mv, etc.) soit en arrière-plan soit d'un autre terminal
-pulsemixer
+# pulsemixer
 qbittorrent
 qimgv
 qt5ct
@@ -147,25 +152,25 @@ rclone
 # regionset # changer la région d'un DVD
 rfkill # commuter bluetooth ou wifi
 ripgrep # better grep
-rpm
+# rpm
 rsync
 ruby-jekyll-paginate
 ruby-jekyll-sitemap
-screenruler
+# screenruler
 #sd # très pratique - mais abandonné?
 # sensible-utils
 shellcheck
 shfmt
 slurp # sélectionner une région sous wayland
 smartmontools
-soundconverter
+# soundconverter
 swayidle
 tar
 tealdeer # tldr client
 thunar
 thunar-archive-plugin
-thunar-gtkhash
-thunar-media-tags-plugin
+# thunar-gtkhash
+# thunar-media-tags-plugin
 thunar-volman
 thunderbird
 thunderbird-l10n-fr
@@ -196,7 +201,7 @@ wlr-randr
 wlrctl
 # wtype
 xfce4-appfinder
-# xdg-terminals-exec # configuration du terminal par défaut: https://github.com/Vladimir-csp/xdg-terminal-exec
+xdg-terminals-exec # configuration du terminal par défaut: https://github.com/Vladimir-csp/xdg-terminal-exec
 xz-utils
 # ydotool # peut être remplacé par https://git.sr.ht/~geb/dotool, qui n'est pas dans debian
 yt-dlp

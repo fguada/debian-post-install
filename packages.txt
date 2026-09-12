@@ -1,5 +1,4 @@
 # This file list all packages that should be installed via apt.
-# Lines and string starting with a # are ignored, so it's easy to choose what to install, eventually in another tty.
 
 alacritty
 # anacron
@@ -9,11 +8,12 @@ arj
 atool
 bash-completion
 bat
+bc
 blueman
 bluez
 bluez-tools
 brightnessctl
-bsdutils
+bsdextrautils
 bzip2
 calibre
 cargo
@@ -37,15 +37,15 @@ diffutils
 diskus
 dmidecode
 docx2txt
-du-dust # better du
-duf # better df
+du-dust ## better du
+duf ## better df
 e2fsprogs
 eject
 exfatprogs
 exif
-eza # better ls
-fastfetch # better neofetch
-fd-find # better find
+eza ## better ls
+fastfetch ## better neofetch
+fd-find ## better find
 fdisk
 ffmpegthumbnailer
 firefox-esr
@@ -61,38 +61,38 @@ gnome-epub-thumbnailer
 golang
 #goldendict
 gparted
-grim # pour les copies d'écran
-gucharmap # plus complet que gnome-characters
+grim ## pour les copies d'écran
+gucharmap ## plus complet que gnome-characters
 gvfs
 gvfs-backends
 gvfs-fuse
 gzip
 htop
 hunspell
-hyperfine # mesurer la vitesse d'exécution d'une commande
+hyperfine ## mesurer la vitesse d'exécution d'une commande
 hyphen-fr
 # hyprpicker
 imagemagick
 info
-# inotify-tools # pour inotifywait
+# inotify-tools ## pour inotifywait
 inxi
 jekyll
-jmtpfs # pour monter de manière fiable mon smartphone via mtp
+jmtpfs ## pour monter de manière fiable mon smartphone via mtp
 jq
-kanshi # gestion des écrans sous wayland
+kanshi ## gestion des écrans sous wayland
 keepassxc
-kid3-qt # éditeur de métadonnées de fichiers audio
+kid3-qt ## éditeur de métadonnées de fichiers audio
 kitty
-kitty-terminfo
+# kitty-terminfo ## devrait être installé automatiquement si nécessaire
 labwc
-lf # gestionnaire de fichier en TUI
+lf ## gestionnaire de fichier en TUI
 # libcairo2-dev
-# libcdio-utils
+libcdio-utils ## iso-info pour fpreview
 # libcpanel-json-xs-perl
-libdvd-pkg # pour lire des DVD protégés (légal)
+libdvd-pkg ## pour lire des DVD protégés (légal)
 # libfuse2t64
 # libglib2.0-bin
-# libimage-exiftool-perl
+libimage-exiftool-perl ## pour le programme exiftool, utilisé dans fpreview
 # libnotify-bin
 # libnotify-dev
 # libpango1.0-dev
@@ -110,37 +110,38 @@ libreoffice-writer
 # libwayland-dev
 # libxkbcommon-dev
 # libxml-dumper-perl
-lxpolkit # light polkit authenticator agent
+lxpolkit ## light polkit authenticator agent
 lzip
 lzop
 mako-notifier
-# mc # gestionnaire de fichiers pour la console
+# mc ## gestionnaire de fichiers pour la console
 mediainfo
 mesa-utils
 mesa-vulkan-drivers
 meson
-micro # better nano
+micro ## better nano
 mintstick
 moor
-moreutils # pour isutf8
+moreutils ## pour isutf8 dans fpreview
 # mousepad
 mpv
-# neovim # to display manpages with an index
+# neovim ## to display manpages with an index
 network-manager
 nm-connection-editor
+node-ytdl-core ## nécessaire à yt-dlp
 nomarch
 ods2tsv
 odt2txt
-pandoc
-parallel # exécution de commandes en parallèle
+pandoc ## pour fpreview
+parallel ## exécution de commandes en parallèle
 # pastel
 pavucontrol-qt
 pavucontrol-qt-l10n
 pdfarranger
 # pipewire-audio
-plocate # faster locate
-poppler-utils # for pdf
-# progress # afficher la progression d'une commande (cp, mv, etc.) soit en arrière-plan soit d'un autre terminal
+plocate ## faster locate
+poppler-utils ## for pdf
+# progress ## afficher la progression d'une commande (cp, mv, etc.) soit en arrière-plan soit d'un autre terminal
 # pulsemixer
 qbittorrent
 qimgv
@@ -149,26 +150,26 @@ qt6ct
 quodlibet
 rar
 rclone
-# regionset # changer la région d'un DVD
-rfkill # commuter bluetooth ou wifi
-ripgrep # better grep
+# regionset ## changer la région d'un DVD
+rfkill ## commuter bluetooth ou wifi
+ripgrep ## better grep
 # rpm
 rsync
 ruby-jekyll-paginate
 ruby-jekyll-sitemap
 # screenruler
-#sd # très pratique - mais abandonné?
+#sd ## très pratique
 # sensible-utils
 shellcheck
 shfmt
-slurp # sélectionner une région sous wayland
-smartmontools
+slurp ## sélectionner une région sous wayland
+smartmontools ## pour inxi? ; sudo systemctl disable --now smartmontools
 # soundconverter
 swayidle
 tar
-tealdeer # tldr client
+tealdeer ## tldr client
 thunar
-thunar-archive-plugin
+# thunar-archive-plugin
 # thunar-gtkhash
 # thunar-media-tags-plugin
 thunar-volman
@@ -188,11 +189,12 @@ vainfo
 vlc
 vlc-plugin-pipewire
 vulkan-tools
+# wayland-pipewire-idle-inhibit ## pas sûr que ce soit nécessaire https://github.com/rafaelrc7/wayland-pipewire-idle-inhibit
 wayland-protocols
 wayland-scanner++
 wayland-utils
 wdisplays
-wev # xev pour wayland
+wev ## xev pour wayland
 wget
 wireplumber
 wl-clipboard
@@ -200,10 +202,12 @@ wlopm
 wlr-randr
 wlrctl
 # wtype
+# xarchiver
 xfce4-appfinder
-xdg-terminals-exec # configuration du terminal par défaut: https://github.com/Vladimir-csp/xdg-terminal-exec
+xdg-terminals-exec ## configuration du terminal par défaut: https://github.com/Vladimir-csp/xdg-terminal-exec
+xlsx2csv
 xz-utils
-# ydotool # peut être remplacé par https://git.sr.ht/~geb/dotool, qui n'est pas dans debian
+# ydotool ## peut être remplacé par https://git.sr.ht/~geb/dotool, qui n'est pas dans debian
 yt-dlp
 zathura
 zathura-cb
